@@ -1,0 +1,380 @@
+\ProvidesPackage{agri_style}[2026/06/22 Commercial Style for Agricultural Microbiology]
+
+% ==========================================================
+% MicroBio Series — Commercial 6x9" E-book Style (Book 2)
+% จุลชีววิทยาการเกษตร (Agricultural Microbiology)
+% มหาวิทยาลัยราชภัฏรำไพพรรณี
+% ==========================================================
+
+% ---------- 1. Page geometry (Standard Academic B5: 176 x 250 mm) ----------
+\usepackage[
+    paperwidth=176mm,
+    paperheight=250mm,
+    top=24mm,
+    bottom=24mm,
+    inner=25mm,
+    outer=20mm,
+    headsep=8mm,
+    footskip=12mm
+]{geometry}
+\setlength{\headheight}{14.5pt}
+
+% ---------- 2. Fonts (Thai) ----------
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setdefaultlanguage{thai}
+\setotherlanguage{english}
+
+% Thai Caption Localization
+\gappto\captionsthai{%
+    \renewcommand{\contentsname}{สารบัญ}%
+    \renewcommand{\listfigurename}{สารบัญภาพ}%
+    \renewcommand{\listtablename}{สารบัญตาราง}%
+    \renewcommand{\bibname}{เอกสารอ้างอิงและบรรณานุกรม}%
+    \renewcommand{\indexname}{ดัชนีคำค้นและศัพท์วิชาการ (Subject Index)}%
+    \renewcommand{\figurename}{ภาพที่}%
+    \renewcommand{\tablename}{ตารางที่}%
+    \renewcommand{\appendixname}{ภาคผนวก}%
+}
+
+% Body: Sarabun (readable for Thai academic text)
+\setmainfont{Sarabun}[
+    UprightFont = * Regular,
+    BoldFont = * Bold,
+    ItalicFont = * Italic,
+    BoldItalicFont = * Bold Italic,
+    Scale = 1.0
+]
+
+\newfontfamily\thaifont{Sarabun}[Script=Thai,
+    UprightFont = * Regular,
+    BoldFont = * Bold,
+    ItalicFont = * Italic,
+    BoldItalicFont = * Bold Italic,
+    Scale = 1.0
+]
+
+\newfontfamily\thaifontsf{Sarabun}[Script=Thai,
+    UprightFont = * Regular,
+    BoldFont = * Bold
+]
+
+\newfontfamily\thaifonttt{Sarabun}[Script=Thai,
+    UprightFont = * Regular,
+    BoldFont = * Bold,
+    Scale = 0.9
+]
+
+% Display / headings: Use Sarabun
+\newfontfamily\displayfont{Sarabun}[
+    UprightFont = * Regular,
+    BoldFont = * Bold,
+    Scale = 1.0
+]
+
+% Sans family
+\setsansfont{Sarabun}[
+    UprightFont = * Regular,
+    BoldFont = * Bold
+]
+
+% Typewriter family (for listings with Thai)
+\setmonofont{Sarabun}[
+    UprightFont = * Regular,
+    BoldFont = * Bold,
+    Scale = 0.9
+]
+
+\linespread{1.25}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{8pt plus 2pt minus 1pt}
+
+% Improve justification
+\tolerance=2000
+\emergencystretch=3em
+\hbadness=10000
+\clubpenalty=10000
+\widowpenalty=10000
+
+% Enable Thai line breaking
+\XeTeXlinebreaklocale "th"
+\XeTeXlinebreakskip = 0pt plus 1pt minus 0.5pt
+
+% ---------- 3. Math & Biology ----------
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{bm}
+\usepackage{mathtools}
+\usepackage{siunitx}
+
+% ---------- 4. Colors (Agricultural Microbiology palette) ----------
+\usepackage{xcolor}
+\definecolor{agriGreen}{HTML}{2E7D32}    % Deep Forest Leaf Green (primary)
+\definecolor{agriMidGreen}{HTML}{388E3C} % Mid Green (subheadings)
+\definecolor{agriBrown}{HTML}{8D6E63}    % Clay/Earth Brown (accent/headers)
+\definecolor{agriGold}{HTML}{FFB300}     % Golden Yellow (highlights)
+\definecolor{agriInk}{HTML}{1A1A1A}      % Body text
+\definecolor{agriGrayBox}{HTML}{F1F8E9}  % Very light green-gray box background
+\definecolor{agriGrayLine}{HTML}{C5E1A5} % Light border line
+\definecolor{agriRed}{HTML}{C62828}      % Pathogen warning
+\definecolor{agriPurple}{HTML}{6A1B9A}   % Lab protocol
+\definecolor{agriBlue}{HTML}{0288D1}     % Insight/Think blue
+\color{agriInk}
+
+% ---------- 5. Graphics, boxes, layout ----------
+\usepackage{graphicx}
+\usepackage[most]{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\setlist{leftmargin=1.4em, itemsep=2pt, topsep=4pt}
+
+% ---------- 6. Hyperlinks ----------
+
+% ---------- TikZ & Graphing Libraries ----------
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, calc, shapes.geometric, decorations.pathmorphing, backgrounds, fit, patterns}
+
+% ---------- Subject Indexing (imakeidx) ----------
+\usepackage{imakeidx}
+\makeindex[columns=2, title={ดัชนีคำค้นและศัพท์วิชาการ (Subject Index)}, intoc]
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=agriGreen,
+    urlcolor=agriBrown,
+    citecolor=agriGreen,
+    pdftitle={จุลชีววิทยาการเกษตรและเทคโนโลยี AIoT},
+    pdfauthor={ชีวะ ทัศนา, จิรภัทร จันทมาลี},
+    pdfsubject={Agricultural Microbiology and AIoT Technology}
+}
+
+% ==========================================================
+% Chapter & section title design
+% ==========================================================
+\titleformat{\chapter}[display]
+    {\displayfont\bfseries\color{agriGreen}}
+    {\hfill\fontsize{84}{84}\selectfont\color{agriBrown!50!agriGreen}\thechapter}
+    {6pt}
+    {\Huge\filright}
+    [\vspace{4pt}{\color{agriBrown}\titlerule[2.5pt]}]
+\titlespacing*{\chapter}{0pt}{10pt}{28pt}
+
+\titleformat{\section}
+    {\displayfont\bfseries\Large\color{agriGreen}}
+    {\thesection}{0.6em}{}
+    [\vspace{2pt}{\color{agriGrayLine}\titlerule[0.8pt]}]
+\titlespacing*{\section}{0pt}{16pt}{6pt}
+
+\titleformat{\subsection}
+    {\displayfont\bfseries\large\color{agriMidGreen}}
+    {\thesubsection}{0.5em}{}
+\titlespacing*{\subsection}{0pt}{12pt}{4pt}
+
+\titleformat{\subsubsection}
+    {\displayfont\bfseries\normalsize\color{agriBrown!80!black}}
+    {}{0em}{}
+\titlespacing*{\subsubsection}{0pt}{10pt}{3pt}
+
+\titleformat{\paragraph}[runin]
+    {\bfseries\color{agriMidGreen}}
+    {}{0em}{}[\;]
+
+% ==========================================================
+% Headers & footers
+% ==========================================================
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancyfoot[C]{\displayfont\small\color{agriGreen!70}\thepage}
+\fancyhead[LE]{\displayfont\footnotesize\color{agriGreen!55}\leftmark}
+\fancyhead[RO]{\displayfont\footnotesize\color{agriGreen!55}จุลชีววิทยาการเกษตรและเทคโนโลยี AIoT}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+
+\fancypagestyle{plain}{
+    \fancyhf{}
+    \fancyfoot[C]{\displayfont\small\color{agriGreen!70}\thepage}
+}
+
+% ==========================================================
+% Custom content boxes (Agricultural Microbiology themed)
+% ==========================================================
+% Key Concept box (green)
+\newtcolorbox{keyconcept}[1][แนวคิดสำคัญ]{
+    enhanced, breakable,
+    colback=agriGrayBox, colframe=agriGreen,
+    boxrule=0.6pt, arc=3pt, left=10pt, right=10pt, top=8pt, bottom=8pt,
+    fonttitle=\displayfont\bfseries\color{white},
+    coltitle=white,
+    attach boxed title to top left={yshift=-2mm, xshift=8pt},
+    boxed title style={colback=agriGreen, arc=2pt, boxrule=0pt},
+    title={#1}
+}
+
+% Agricultural Application box (brown/gold)
+\newtcolorbox{application}[1][การประยุกต์ใช้ทางการเกษตร]{
+    enhanced, breakable,
+    colback=agriBrown!6, colframe=agriBrown,
+    boxrule=0.6pt, arc=3pt, left=10pt, right=10pt, top=8pt, bottom=8pt,
+    fonttitle=\displayfont\bfseries\color{white},
+    coltitle=white,
+    attach boxed title to top left={yshift=-2mm, xshift=8pt},
+    boxed title style={colback=agriBrown, arc=2pt, boxrule=0pt},
+    title={#1}
+}
+
+% Think/Insight box (blue)
+\newtcolorbox{insight}[1][ลองคิดดู]{
+    enhanced, breakable,
+    colback=agriBlue!5, colframe=agriBlue!85!black,
+    boxrule=0.6pt, arc=3pt, left=10pt, right=10pt, top=8pt, bottom=8pt,
+    fonttitle=\displayfont\bfseries\color{white},
+    coltitle=white,
+    attach boxed title to top left={yshift=-2mm, xshift=8pt},
+    boxed title style={colback=agriBlue, arc=2pt, boxrule=0pt},
+    title={#1}
+}
+
+% Worked Example box (neutral gray-green)
+\newtcolorbox{worked}[1][ตัวอย่าง]{
+    enhanced, breakable,
+    colback=white, colframe=agriGrayLine,
+    boxrule=0.8pt, arc=3pt, left=10pt, right=10pt, top=8pt, bottom=8pt,
+    fonttitle=\displayfont\bfseries\color{agriGreen},
+    attach boxed title to top left={yshift=-2mm, xshift=8pt},
+    boxed title style={colback=white, arc=0pt, boxrule=0pt},
+    title={#1}
+}
+
+% Warning / Pathogen Alert box (red)
+\newtcolorbox{pathogen}[1][เชื้อก่อโรค]{
+    enhanced, breakable,
+    colback=agriRed!6, colframe=agriRed,
+    boxrule=0.6pt, arc=3pt, left=10pt, right=10pt, top=8pt, bottom=8pt,
+    fonttitle=\displayfont\bfseries\color{white},
+    attach boxed title to top left={yshift=-2mm, xshift=8pt},
+    boxed title style={colback=agriRed, arc=2pt, boxrule=0pt},
+    title={#1}
+}
+
+% Lab Protocol box (purple)
+\newtcolorbox{labprotocol}[1][ขั้นตอนปฏิบัติการ]{
+    enhanced, breakable,
+    colback=agriPurple!5, colframe=agriPurple!80,
+    boxrule=0.6pt, arc=3pt, left=10pt, right=10pt, top=8pt, bottom=8pt,
+    fonttitle=\displayfont\bfseries\color{white},
+    attach boxed title to top left={yshift=-2mm, xshift=8pt},
+    boxed title style={colback=agriPurple!80, arc=2pt, boxrule=0pt},
+    title={#1}
+}
+
+% AR 3D Interactive Simulation box (Teal/Cyan)
+\newtcolorbox{arinteraction}[1][AR 3D Interactive Book]{
+    enhanced, breakable,
+    colback=teal!4, colframe=teal!80!black,
+    boxrule=0.7pt, arc=3pt, left=8pt, right=8pt, top=8pt, bottom=8pt,
+    fonttitle=\displayfont\bfseries\color{white},
+    attach boxed title to top left={yshift=-2mm, xshift=8pt},
+    boxed title style={colback=teal!80!black, arc=2pt, boxrule=0pt},
+    title={#1}
+}
+
+% ==========================================================
+% Code listings (for bioinformatic/modelling python code)
+% ==========================================================
+\usepackage{listings}
+
+\definecolor{CodeBgGray}{HTML}{F9FBF9}
+\definecolor{CodeFgBlack}{HTML}{333333}
+\definecolor{CodeKeyword}{HTML}{2E7D32}
+\definecolor{CodeString}{HTML}{795548}
+\definecolor{CodeComment}{HTML}{757575}
+\definecolor{CodeNumber}{HTML}{EF6C00}
+
+\lstset{
+    language=Python,
+    backgroundcolor=\color{CodeBgGray},
+    basicstyle=\ttfamily\small\color{CodeFgBlack},
+    commentstyle=\itshape\color{CodeComment},
+    keywordstyle=\bfseries\color{CodeKeyword},
+    stringstyle=\color{CodeString},
+    numberstyle=\tiny\color{CodeComment},
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=8pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=4,
+    frame=single,
+    framesep=8pt,
+    rulecolor=\color{agriGrayLine},
+    framerule=1pt,
+    frameround=tttt,
+    xleftmargin=10pt,
+    xrightmargin=4pt,
+    aboveskip=10pt,
+    belowskip=10pt
+}
+
+% Caption styling
+\usepackage{caption}
+\captionsetup{labelsep=space, labelfont=bf}
+\captionsetup[lstlisting]{font={sf,footnotesize,color=agriGreen!70}, labelfont=bf, singlelinecheck=false, justification=raggedright, labelsep=period}
+\renewcommand{\lstlistingname}{โค้ด}
+
+% ==========================================================
+% Custom commands for Microbiology
+% ==========================================================
+\newcommand{\genus}[1]{\textit{#1}}          % Genus name italic
+\newcommand{\species}[1]{\textit{#1}}         % Species name italic
+\newcommand{\organism}[1]{\textit{#1}}        % Organism italic
+\newcommand{\gram}[1]{\textsf{Gram-#1}}       % Gram stain
+\newcommand{\mum}{\ensuremath{\mu\text{m}}}   % micrometer
+\newcommand{\degree}{\ensuremath{^\circ}}     % degree symbol
+
+
+% ---------- Summary & Comparative Table / Box Environments ----------
+\newtcolorbox{deeplearningbox}[1][โครงสร้างแบบจำลอง AI \& Deep Learning]{
+    enhanced, breakable,
+    colback=mbCyan!6, colframe=mbCyan!85!black,
+    boxrule=0.7pt, arc=3pt, left=10pt, right=10pt, top=8pt, bottom=8pt,
+    fonttitle=\displayfont\bfseries\color{white},
+    attach boxed title to top left={yshift=-2mm, xshift=8pt},
+    boxed title style={colback=mbCyan!85!black, arc=2pt, boxrule=0pt},
+    title={#1}
+}
+
+\newtcolorbox{promptbox}[1][ชุดคำสั่งพรอมพ์สำหรับปัญญาประดิษฐ์ (Generative AI Prompt)]{
+    enhanced, breakable,
+    colback=mbLightGreen!40, colframe=mbGreen!90!black,
+    boxrule=0.7pt, arc=3pt, left=10pt, right=10pt, top=8pt, bottom=8pt,
+    fonttitle=\displayfont\bfseries\color{white},
+    attach boxed title to top left={yshift=-2mm, xshift=8pt},
+    boxed title style={colback=mbGreen!90!black, arc=2pt, boxrule=0pt},
+    title={#1}
+}
+
+
+% Universal Color Aliases
+\providecolor{navyprimary}{HTML}{0D233A}
+\providecolor{mbGreen}{HTML}{1B5E20}
+\providecolor{mbMidGreen}{HTML}{2E7D32}
+\providecolor{mbCyan}{HTML}{00ACC1}
+\providecolor{mbAmber}{HTML}{F57F17}
+\providecolor{mbGrayBox}{HTML}{F4F7F4}
+\providecolor{mbLightGreen}{HTML}{E8F5E9}
+\providecolor{mbPurple}{HTML}{6A1B9A}
+\providecolor{mbRed}{HTML}{B71C1C}
+\providecolor{forestgreen}{HTML}{2E7D32}
+\providecolor{earthbrown}{HTML}{8D6E63}
+\providecolor{amber}{HTML}{FFB300}

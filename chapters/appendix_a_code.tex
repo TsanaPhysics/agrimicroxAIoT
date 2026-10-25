@@ -1,0 +1,37 @@
+\chapter{ภาคผนวก ก — คลังสคริปต์ Python และอัลกอริทึมปัญญาประดิษฐ์ด้านการเกษตร}
+\label{appendix:a_code}
+
+\noindent รวมสคริปต์สำหรับการประเมินสุขภาพดิน การคำนวณดัชนีพืชพรรณพหุสเปกตรัม และการวิเคราะห์กลุ่มจุลินทรีย์ส่งเสริมการเจริญเติบโตของพืช (PGPR)\index{PGPR@PGPR (จุลินทรีย์ส่งเสริมการเจริญเติบโตของพืช)}\index{Kriging@Kriging (การประมาณค่าเชิงพื้นที่)}
+
+\section{การประมาณค่าความหนาแน่นจุลินทรีย์ในดินเชิงพื้นที่ด้วย Ordinary Kriging}
+\begin{lstlisting}[language=Python, caption={การสร้างแผนที่ความหนาแน่นจุลินทรีย์ดินด้วย PyKrige}]
+import numpy as np
+from pykrige.ok import OrdinaryKriging
+import matplotlib.pyplot as plt
+
+def interpolate_microbial_density(x_coords, y_coords, cfu_values, grid_res=100):
+    # สร้างโมเดล Ordinary Kriging ด้วย Variogram ทรงกลม (Spherical)
+    OK = OrdinaryKriging(
+        x_coords, y_coords, cfu_values,
+        variogram_model='spherical',
+        verbose=False, enable_plotting=False
+    )
+    
+    gridx = np.linspace(min(x_coords), max(x_coords), grid_res)
+    gridy = np.linspace(min(y_coords), max(y_coords), grid_res)
+    z, ss = OK.execute('grid', gridx, gridy)
+    
+    print(f"[GEO-STAT] Mean Estimated Biomass Density: {np.mean(z):.2f} x 10^6 CFU/g")
+    return gridx, gridy, z
+\end{lstlisting}
+
+\section{การคำนวณดัชนี NDVI และ NDRE จากข้อมูลภาพถ่ายพหุสเปกตรัมของโดรน}
+\index{NDVI@NDVI (Normalized Difference Vegetation Index)}\index{NDRE@NDRE (Normalized Difference Red Edge)}
+\begin{lstlisting}[language=Python, caption={การคำนวณดัชนีสุขภาพแปลงเกษตรเพื่อทำนายผลลัพธ์จุลินทรีย์ดิน}]
+def compute_vegetation_indices(nir_band, red_band, rededge_band):
+    # ป้องกันการหารด้วยศูนย์ด้วย epsilon
+    eps = 1e-6
+    ndvi = (nir_band - red_band) / (nir_band + red_band + eps)
+    ndre = (nir_band - rededge_band) / (nir_band + rededge_band + eps)
+    return ndvi, ndre
+\end{lstlisting}

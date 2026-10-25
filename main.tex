@@ -1,0 +1,136 @@
+\documentclass[10pt]{book}
+
+\usepackage{agri_style}
+
+\begin{document}
+
+% ==========================================================
+% Front matter
+% ==========================================================
+\frontmatter
+
+% --- Cover page ---
+\input{cover.tex}
+
+% --- Copyright page ---
+\newpage
+\thispagestyle{empty}
+\vspace*{\fill}
+
+\begin{center}
+\textbf{\large ข้อมูลทางบรรณานุกรมของสำนักหอสมุดแห่งชาติ}\\
+\textbf{National Library of Thailand Cataloging in Publication Data}
+\end{center}
+
+\vspace{0.2cm}
+\begin{tcolorbox}[colback=white, colframe=black, boxrule=0.8pt, arc=0pt, left=10pt, right=10pt, top=8pt, bottom=8pt]
+\small
+ชีวะ ทัศนา.\\
+\hspace*{1.5em}\textbf{จุลชีววิทยาการเกษตรและเทคโนโลยี AIoT} = Agricultural microbiology and AIoT technology / ชีวะ ทัศนา และ จิรภัทร จันทมาลี. -- พิมพ์ครั้งที่ 1. -- จันทบุรี : คณะวิทยาศาสตร์และเทคโนโลยี มหาวิทยาลัยราชภัฏรำไพพรรณี, 2569.\\
+\hspace*{1.5em}169 หน้า : ภาพประกอบ (บางภาพเป็นสี), แผนภูมิ, ตาราง ; 25 ซม. (มาตรฐาน B5)
+
+\vspace{0.3cm}
+\hspace*{1.5em}1. จุลชีววิทยาทางการเกษตร. 2. ปัญญาประดิษฐ์ทางการเกษตร. 3. อินเทอร์เน็ตของสรรพสิ่ง (IoT). 4. เกษตรกรรมแม่นยำ. I. จิรภัทร จันทมาลี, ผู้แต่งร่วม. II. ชื่อเรื่อง.
+
+\vspace{0.3cm}
+\noindent\textbf{QR51} \hfill \textbf{630.276}\\
+\textbf{ISBN 978-616-94520-2-7 (e-book : PDF)}
+\end{tcolorbox}
+
+\vspace{0.4cm}
+\noindent\textbf{จุลชีววิทยาการเกษตรและเทคโนโลยี AIoT}\\
+\textbf{Agricultural Microbiology and AIoT Technology}
+
+\vspace{0.2cm}
+\noindent\textbf{ผู้เขียน:}\\
+ผู้ช่วยศาสตราจารย์ ดร.ชีวะ ทัศนา\\
+\textit{วท.บ. (ฟิสิกส์ประยุกต์), วท.ม. (ฟิสิกส์), ปร.ด. (ฟิสิกส์)}\\
+ผู้ช่วยศาสตราจารย์ ดร.จิรภัทร จันทมาลี\\
+\textit{วท.บ. (จุลชีววิทยา), วท.ม. (จุลชีววิทยาประยุกต์), ปร.ด. (เทคโนโลยีชีวภาพ)}
+
+\vspace{0.2cm}
+\noindent\textbf{สงวนลิขสิทธิ์ตามพระราชบัญญัติลิขสิทธิ์ พ.ศ. 2537 และที่แก้ไขเพิ่มเติม}\\
+ห้ามลอกเลียนแบบ ดัดแปลง บันทึก หรือทำซ้ำส่วนใดส่วนหนึ่งของหนังสือเล่มนี้ ไม่ว่าด้วยกระบวนการทางอิเล็กทรอนิกส์ การถ่ายเอกสาร หรือวิธีการอื่นใด เว้นแต่จะได้รับอนุญาตเป็นลายลักษณ์อักษรจากคณะผู้เขียน เพื่อการศึกษาและวิจัยทางวิชาการที่ไม่แสวงหากำไร
+
+\vspace{0.2cm}
+\noindent\textbf{จัดพิมพ์และเผยแพร่โดย:}\\
+คณะวิทยาศาสตร์และเทคโนโลยี มหาวิทยาลัยราชภัฏรำไพพรรณี\\
+41 หมู่ 5 ตำบลท่าช้าง อำเภอเมือง จังหวัดจันทบุรี 22000\\
+โทรศัพท์: 0-3931-9111 | เว็บไซต์: https://www.rbru.ac.th
+
+\vspace{0.2cm}
+\noindent\textbf{ข้อมูลการจัดพิมพ์:}\\
+พิมพ์ครั้งที่ 1 (มิถุนายน พ.ศ. 2569)\\
+รูปแบบสื่อ: E-Book (Interactive PDF, มาตรฐาน Academic B5 176 $\times$ 250 มม.)\\
+จัดรูปเล่มด้วย: XeLaTeX \& TikZ Engine (TeX Live 2026)
+
+% --- Preface ---
+\chapter*{คำนำ}
+\addcontentsline{toc}{chapter}{คำนำ}
+
+หนังสือ \textbf{``จุลชีววิทยาการเกษตรและเทคโนโลยี AIoT''} เล่มนี้ ได้รับการพัฒนา ยกระดับ และขยายเนื้อหาอย่างลึกซึ้งตามมาตรฐานวิชาการระดับสากลและกรอบเกณฑ์มาตรฐาน ก.พ.อ. ระดับรองศาสตราจารย์ (รศ.) เพื่อให้สอดรับกับความก้าวหน้าอย่างก้าวกระโดดของวิทยาการคอมพิวเตอร์ชีวภาพ ปัญญาประดิษฐ์ (Artificial Intelligence) การเรียนรู้ของเครื่องและโครงข่ายประสาทเทียม (Machine Learning \& Deep Learning) ตลอดจนเทคโนโลยีชีวภาพสมัยใหม่ตามเกณฑ์มาตรฐานการศึกษา OBE (Outcome-Based Education)
+
+เนื้อหาภายในเล่มได้รับการบูรณาการอย่างเป็นระบบครอบคลุม 11 บทเรียนและ 3 ภาคผนวก ตั้งแต่นิเวศวิทยาเชิงลึกของไรโซสเฟียร์และฟิลโลสเฟียร์ ชีวสรีรวิทยาของวัฏจักรสารอาหาร กลไกระดับโมเลกุลของแบคทีเรียส่งเสริมการเจริญเติบโตพืช (PGPR) และราไมคอร์ไรซา พยาธิกำเนิดของโรคพืชตามแบบจำลอง Zigzag Model และระบาดวิทยาเชิงปริมาณ ชีวเคมีของสารพิษ Bt และราปฏิปักษ์ วิศวกรรมการหมักปุ๋ยชีวภาพและการถ่ายโอนออกซิเจน ($k_L a$) จุลชีววิทยาในกระเพาะรูเมนและระบบไบโอฟล็อกในสัตว์น้ำ วิศวกรรมปุ๋ยหมักและแบบจำลอง Modified Gompertz ก๊าซชีวภาพ ตลอดจนการถอดรหัสพันธุกรรมเมตาเจโนมิกส์ (DADA2, QIIME2, SynComs) สถาปัตยกรรม AIoT และโทรมาตรแปลงเกษตร (RS485 Modbus RTU, LoRaWAN, Edge AI YOLOv8-Nano) พร้อมทั้งคู่มือปฏิบัติการทดลองมาตรฐาน 8 การทดลอง และภาคผนวกคลังสคริปต์ Python แผนผังวงจร และชุดคำสั่งพร้อมท์ AI อย่างครบครัน
+
+คณะผู้เขียนหวังเป็นอย่างยิ่งว่า ตำราเล่มนี้จะเป็นแหล่งอ้างอิงทางวิชาการที่สำคัญ เป็นคู่มือในการพัฒนางานวิจัยขั้นสูง และสร้างแรงบันดาลใจให้แก่นักศึกษา นักวิจัย คณาจารย์ และนักวิชาการเกษตร ในการขับเคลื่อนภาคการเกษตรของไทยสู่อนาคตที่ยั่งยืน
+
+\vspace{1cm}
+\noindent\textbf{ผู้ช่วยศาสตราจารย์ ดร.ชีวะ ทัศนา\\ผู้ช่วยศาสตราจารย์ ดร.จิรภัทร จันทมาลี}\\
+\textit{คณะวิทยาศาสตร์และเทคโนโลยี มหาวิทยาลัยราชภัฏรำไพพรรณี}\\
+\textit{มิถุนายน 2569}
+
+% --- Table of Contents ---
+\tableofcontents
+
+% --- List of Figures ---
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{\listfigurename}
+\listoffigures
+
+% --- List of Tables ---
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{\listtablename}
+\listoftables
+
+% ==========================================================
+% Main matter
+% ==========================================================
+\mainmatter
+
+\include{chapters/ch01_intro}
+\include{chapters/ch02_soil_microbes}
+\include{chapters/ch03_pgpr}
+\include{chapters/ch04_plant_pathogens}
+\include{chapters/ch05_biocontrol}
+\include{chapters/ch06_biofertilizers}
+\include{chapters/ch07_animal_husbandry}
+\include{chapters/ch08_waste_bioenergy}
+\include{chapters/ch09_smart_farming}
+\include{chapters/ch10_aiot_precision_microbiology}
+\include{chapters/ch11_lab_manual}
+
+% ==========================================================
+% Back matter
+% ==========================================================
+\include{chapters/references_apa7}
+
+\backmatter
+\appendix
+
+\include{chapters/appendix_a_ai_code}
+\include{chapters/appendix_b_schematics}
+\include{chapters/appendix_c_prompts}
+
+% ==========================================================
+% Glossary
+% ==========================================================
+\include{chapters/glossary}
+
+% ==========================================================
+% Subject Index
+% ==========================================================
+\printindex
+
+\end{document}

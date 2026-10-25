@@ -1,0 +1,104 @@
+\chapter{ภาคผนวก ก — คลังสคริปต์ Python สำหรับการวิเคราะห์ข้อมูลไมโครไบโอมและสถิติเกษตรแม่นยำ}
+\label{appendix:a_ai_code}
+
+\noindent คลังสคริปต์ภาษา Python ที่ผ่านการทดสอบและใช้งานจริงสำหรับการวิเคราะห์ข้อมูลไมโครไบโอม การคำนวณสถิติเชิงภูมิศาสตร์ การประมวลผลภาพโรคพืชด้วยคอมพิวเตอร์วิทัศน์ และการสร้างแบบจำลองการเรียนรู้ของเครื่องสำหรับเกษตรแม่นยำ\index{Python Scripts@Python Scripts for Agri}\index{Kriging@Kriging (การประมาณค่าเชิงพื้นที่)}\index{Random Forest@Random Forest}\index{Computer Vision@Computer Vision}\index{NDVI@NDVI}
+
+\section{การประมาณค่าความหนาแน่นจุลินทรีย์ดินเชิงพื้นที่ด้วย Ordinary Kriging}
+\begin{lstlisting}[language=Python, caption={การสร้างแผนที่ความหนาแน่นจุลินทรีย์ดินด้วย PyKrige}]
+import numpy as np
+from pykrige.ok import OrdinaryKriging
+import matplotlib.pyplot as plt
+
+def interpolate_microbial_density(x_coords, y_coords, cfu_values, grid_res=100):
+    """
+    ประมาณค่าความหนาแน่นชีวมวลจุลินทรีย์ดินเชิงพื้นที่ด้วยสถิติเชิงภูมิศาสตร์ Ordinary Kriging
+    """
+    OK = OrdinaryKriging(
+        x_coords, y_coords, cfu_values,
+        variogram_model='spherical',
+        verbose=False, enable_plotting=False
+    )
+    
+    gridx = np.linspace(min(x_coords), max(x_coords), grid_res)
+    gridy = np.linspace(min(y_coords), max(y_coords), grid_res)
+    z, ss = OK.execute('grid', gridx, gridy)
+    
+    print(f"[GEO-STAT] Mean Estimated Biomass Density: {np.mean(z):.2f} x 10^6 CFU/g")
+    return gridx, gridy, z
+\end{lstlisting}
+
+\section{การคำนวณดัชนี NDVI และ NDRE จากข้อมูลภาพถ่ายพหุสเปกตรัมของโดรน}
+\begin{lstlisting}[language=Python, caption={การคำนวณดัชนีสุขภาพแปลงเกษตรเพื่อทำนายผลลัพธ์จุลินทรีย์ดิน}]
+def compute_vegetation_indices(nir_band, red_band, rededge_band):
+    """
+    คำนวณดัชนี NDVI และ NDRE เพื่อประเมินคลอโรฟิลล์และความสมบูรณ์ของพืช
+    """
+    eps = 1e-6
+    ndvi = (nir_band - red_band) / (nir_band + red_band + eps)
+    ndre = (nir_band - rededge_band) / (nir_band + rededge_band + eps)
+    return ndvi, ndre
+\end{lstlisting}
+
+\section{การสร้างแบบจำลอง Machine Learning พยากรณ์ประสิทธิภาพจุลินทรีย์ดิน}
+\begin{lstlisting}[language=Python, caption={การพยากรณ์ฟอสฟอรัสละลายได้จากแบคทีเรียละลายฟอสเฟตด้วย Scikit-Learn}]
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
+
+def train_pgpr_predictor(sensor_csv_path):
+    """
+    ฝึกฝนโมเดล Random Forest ทำนายอัตราการปลดปล่อย P จากเซนเซอร์ดิน (pH, EC, Moisture, Temp)
+    """
+    df = pd.read_csv(sensor_csv_path)
+    X = df[['soil_ph', 'soil_ec', 'soil_moisture', 'soil_temp', 'organic_matter']]
+    y = df['available_p_ppm']
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    
+    rf = RandomForestRegressor(n_estimators=100, max_depth=8, random_state=42)
+    rf.fit(X_train, y_train)
+    
+    y_pred = rf.predict(X_test)
+    r2 = r2_score(y_test, y_pred)
+    rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+    
+    print(f"[ML-EVAL] Model R2 Score: {r2:.4f}, RMSE: {rmse:.2f} ppm")
+    return rf
+\end{lstlisting}
+
+\section{การตัดแยกพื้นที่แผลโรคพืชบนใบด้วย OpenCV และ HSV Thresholding}
+\begin{lstlisting}[language=Python, caption={การคำนวณดัชนี Disease Severity Index (DSI) ด้วย OpenCV}]
+import cv2
+import numpy as np
+
+def calculate_disease_severity(image_path):
+    """
+    วิเคราะห์ภาพใบพืช แยกพื้นที่รอยแผลสะเก็ดและคำนวณค่า Disease Severity Index
+    """
+    img = cv2.imread(image_path)
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    
+    # ช่วงสีของใบไม้เขียวสุขภาพดี
+    lower_green = np.array([25, 40, 40])
+    upper_green = np.array([85, 255, 255])
+    mask_green = cv2.inRange(hsv, lower_green, upper_green)
+    
+    # ช่วงสีของรอยแผลไหม้/เน่าสีน้ำตาล
+    lower_brown = np.array([10, 50, 20])
+    upper_brown = np.array([24, 255, 200])
+    mask_disease = cv2.inRange(hsv, lower_brown, upper_brown)
+    
+    green_pixels = cv2.countNonZero(mask_green)
+    disease_pixels = cv2.countNonZero(mask_disease)
+    total_leaf_pixels = green_pixels + disease_pixels
+    
+    if total_leaf_pixels == 0:
+        return 0.0
+        
+    dsi = (disease_pixels / total_leaf_pixels) * 100.0
+    print(f"[CV-AI] Total Leaf Area: {total_leaf_pixels} px, Lesion: {disease_pixels} px")
+    print(f"[CV-AI] Calculated DSI: {dsi:.2f}%")
+    return dsi
+\end{lstlisting}

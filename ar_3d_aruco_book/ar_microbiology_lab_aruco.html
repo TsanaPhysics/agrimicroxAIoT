@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AR 3D ArUco Book — จุลชีววิทยาการเกษตรและเทคโนโลยี AIoT (มรภ.รำไพพรรณี)</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="aruco_dictionary_6x6.js"></script>
+  <script src="aruco_tracker.js"></script>
+
+  <style>
+    /* =========================================================
+       1. Base Reset & Fullscreen Viewport
+       ========================================================= */
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+    body {
+      background: #020813;
+      color: #f8fafc;
+      font-family: 'Prompt', sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    #webgl-canvas-container {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      background: radial-gradient(circle at 50% 35%, #071e16 0%, #020813 90%);
+      transition: background 0.3s ease;
+    }
+    body.ar-active #webgl-canvas-container {
+      background: transparent !important;
+    }
+
+    #camera-video {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: 0;
+      display: none;
+      background: #000;
+    }
+
+    /* =========================================================
+       2. Top Bar & Holographic Status Badges
+       ========================================================= */
+    #topHeader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      padding: 14px 18px;
+      z-index: 40;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(180deg, rgba(2, 8, 19, 0.88) 0%, rgba(2, 8, 19, 0) 100%);
+      pointer-events: none;
+    }
+    .header-left {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-pill {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      backdrop-filter: blur(8px);
+    }
+    .book-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #ffffff;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+    }
+    .book-subtitle {
+      font-size: 0.68rem;
+      color: #94a3b8;
+    }
+    .header-right {
+      pointer-events: auto;
+      display: flex;
+      gap: 8px;
+    }
+    .top-btn {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #e2e8f0;
+      padding: 7px 12px;
+      border-radius: 10px;
+      font-size: 0.78rem;
+      font-family: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s ease;
+    }
+    .top-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* =========================================================
+       3. AR Reticle & Laser Optical Scanner
+       ========================================================= */
+    #ar-reticle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(320px, 76vw);
+      height: min(320px, 76vw);
+      border: 2px dashed rgba(16, 185, 129, 0.5);
+      border-radius: 20px;
+      z-index: 30;
+      display: none;
+      pointer-events: auto;
+      cursor: pointer;
+      box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);
+      overflow: hidden;
+    }
+    .reticle-corner { position: absolute; width: 22px; height: 22px; border: 3px solid #10b981; }
+    .rc-tl { top: -2px; left: -2px; border-right: none; border-bottom: none; border-radius: 12px 0 0 0; }
+    .rc-tr { top: -2px; right: -2px; border-left: none; border-bottom: none; border-radius: 0 12px 0 0; }
+    .rc-bl { bottom: -2px; left: -2px; border-right: none; border-top: none; border-radius: 0 0 0 12px; }
+    .rc-br { bottom: -2px; right: -2px; border-left: none; border-top: none; border-radius: 0 0 12px 0; }
+    
+    .reticle-scan-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #10b981, #fff, #10b981, transparent);
+      box-shadow: 0 0 16px #10b981;
+      animation: scanLaser 2.2s infinite ease-in-out;
+    }
+    @keyframes scanLaser {
+      0% { top: 4%; opacity: 0.2; }
+      50% { top: 94%; opacity: 1; }
+      100% { top: 4%; opacity: 0.2; }
+    }
+    #ar-reticle.locked {
+      border-color: #10b981 !important;
+      box-shadow: 0 0 45px rgba(16, 185, 129, 0.7) !important;
+    }
+    #ar-reticle.locked .reticle-scan-line { display: none; }
+
+    .reticle-tag {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(2, 8, 19, 0.85);
+      border: 1px solid rgba(16, 185, 129, 0.5);
+      color: #f1f5f9;
+      font-size: 0.72rem;
+      padding: 5px 12px;
+      border-radius: 999px;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* =========================================================
+       4. Lab Selector Capsule (Top Center)
+       ========================================================= */
+    #labCapsule {
+      position: fixed;
+      top: 68px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 45;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      padding: 6px 14px;
+      border-radius: 999px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      cursor: pointer;
+    }
+    #capsuleText {
+      font-size: 0.76rem;
+      font-weight: 500;
+      color: #ecfdf5;
+    }
+    #labCapsule i {
+      color: #34d399;
+      font-size: 0.7rem;
+    }
+
+    /* Modal Lab Picker */
+    #labPickerModal {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.85);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-card {
+      background: #0f172a;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 440px;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 22px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .modal-title { font-size: 1.05rem; font-weight: 600; color: #fff; }
+    .modal-close { background: none; border: none; color: #94a3b8; font-size: 1.2rem; cursor: pointer; }
+    .lab-option-btn {
+      width: 100%;
+      text-align: left;
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      color: #f1f5f9;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s ease;
+    }
+    .lab-option-btn:hover, .lab-option-btn.active {
+      background: rgba(16, 185, 129, 0.18);
+      border-color: #10b981;
+    }
+    .lab-num-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #10b981;
+      color: #020813;
+      font-weight: 700;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* =========================================================
+       5. Bangchak-Style Curved Bottom Navigation
+       ========================================================= */
+    #mobileBottomNav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100vw;
+      height: 82px;
+      z-index: 50;
+      display: flex;
+      align-items: flex-end;
+      pointer-events: none;
+    }
+    .nav-bg-svg {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      filter: drop-shadow(0 -4px 16px rgba(0,0,0,0.6));
+    }
+    .nav-content {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 64px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0 16px;
+      pointer-events: auto;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 0.68rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .nav-item i { font-size: 1.15rem; }
+    .nav-item.active { color: #10b981; }
+
+    /* Center 3D Floating Action Gem */
+    .gem-btn-container {
+      position: relative;
+      top: -18px;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .gem-btn {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #34d399 0%, #059669 65%, #047857 100%);
+      border: 3px solid rgba(255, 255, 255, 0.35);
+      color: #ffffff;
+      font-size: 1.35rem;
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.5), inset 0 2px 4px rgba(255,255,255,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .gem-btn:active {
+      transform: scale(0.92);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+    body.ar-active .gem-btn {
+      background: radial-gradient(circle at 35% 30%, #f43f5e 0%, #e11d48 65%, #be123c 100%);
+      box-shadow: 0 8px 24px rgba(244, 63, 94, 0.6);
+    }
+
+    /* =========================================================
+       6. Translucent Side Drawers (DATA & CTRL)
+       ========================================================= */
+    .side-drawer {
+      position: fixed;
+      top: 60px;
+      bottom: 90px;
+      width: min(320px, 85vw);
+      background: rgba(2, 8, 19, 0.78);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 60;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow-y: auto;
+    }
+    #drawerLeft { left: 0; border-left: none; border-radius: 0 20px 20px 0; transform: translateX(-105%); }
+    #drawerRight { right: 0; border-right: none; border-radius: 20px 0 0 20px; transform: translateX(105%); }
+    .side-drawer.open { transform: translateX(0) !important; }
+
+    .drawer-title {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #34d399;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .telemetry-card {
+      background: rgba(15, 23, 42, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .t-label { font-size: 0.72rem; color: #94a3b8; margin-bottom: 4px; }
+    .t-val { font-family: 'JetBrains Mono', monospace; font-size: 1.15rem; font-weight: 600; color: #38bdf8; }
+    .t-sub { font-size: 0.65rem; color: #64748b; margin-top: 2px; }
+
+    .ctrl-slider-group {
+      margin-bottom: 12px;
+    }
+    .ctrl-label {
+      font-size: 0.74rem;
+      color: #cbd5e1;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .ctrl-slider {
+      width: 100%;
+      accent-color: #10b981;
+    }
+
+    /* Molecular Sidecar Quick Link Pill */
+    .sidecar-pill {
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid rgba(99, 102, 241, 0.5);
+      color: #a5b4fc;
+      font-size: 0.7rem;
+      padding: 6px 10px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .sidecar-pill:hover { background: rgba(99, 102, 241, 0.3); }
+
+    /* Sound chime toggle */
+    #audioCue { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header Bar -->
+  <header id="topHeader">
+    <div class="header-left">
+      <div class="brand-pill">
+        <i class="fa-solid fa-cube"></i> AR 3D ARUCO
+      </div>
+      <div>
+        <div class="book-title">จุลชีววิทยาการเกษตรและเทคโนโลยี AIoT</div>
+        <div class="book-subtitle">คู่มือปฏิบัติการเสมือนจริง 8 ปฏิบัติการ • มรภ.รำไพพรรณี</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="top-btn" id="btnHelp"><i class="fa-solid fa-circle-question"></i> วิธีส่อง</button>
+      <button class="top-btn" id="btnSidecar"><i class="fa-solid fa-dna"></i> PDB Mol*</button>
+    </div>
+  </header>
+
+  <!-- Lab Selector Capsule -->
+  <div id="labCapsule">
+    <i class="fa-solid fa-flask-vial"></i>
+    <span id="capsuleText">แล็บ 1: Winogradsky Column (Marker ID 0)</span>
+    <i class="fa-solid fa-chevron-down"></i>
+  </div>
+
+  <!-- AR Reticle -->
+  <div id="ar-reticle">
+    <div class="reticle-corner rc-tl"></div><div class="reticle-corner rc-tr"></div>
+    <div class="reticle-corner rc-bl"></div><div class="reticle-corner rc-br"></div>
+    <div class="reticle-scan-line"></div>
+    <div class="reticle-tag" id="reticleTag"><i class="fa-solid fa-camera"></i> นำกล้องส่องไปที่ ArUco Marker ในหน้าแล็บ</div>
+  </div>
+
+  <!-- Video Feed & Three.js Canvas -->
+  <video id="camera-video" autoplay playsinline webkit-playsinline muted></video>
+  <div id="webgl-canvas-container"></div>
+
+  <!-- Left Drawer: Telemetry DATA -->
+  <div class="side-drawer" id="drawerLeft">
+    <div class="drawer-title"><i class="fa-solid fa-chart-line"></i> TELEMETRY & SENSORS</div>
+    <div id="telemetryContent">
+      <!-- Dynamic Lab Telemetry -->
+    </div>
+    <div class="sidecar-pill" id="btnOpenSidecarDirect">
+      <i class="fa-solid fa-atom"></i> เปิด Biomolecular Structure Viewer
+    </div>
+  </div>
+
+  <!-- Right Drawer: 3D Lab Controls CTRL -->
+  <div class="side-drawer" id="drawerRight">
+    <div class="drawer-title"><i class="fa-solid fa-sliders"></i> LAB PARAMETERS</div>
+    <div id="controlsContent">
+      <!-- Dynamic Lab Controls -->
+    </div>
+    <button class="top-btn" style="width: 100%; justify-content: center;" id="btnResetView">
+      <i class="fa-solid fa-rotate-left"></i> รีเซ็ตมุมมอง 3D
+    </button>
+  </div>
+
+  <!-- Lab Picker Modal -->
+  <div id="labPickerModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title"><i class="fa-solid fa-book-bookmark"></i> เลือกปฏิบัติการที่ 1--8</div>
+        <button class="modal-close" id="btnCloseModal">&times;</button>
+      </div>
+      <div id="labListContainer">
+        <!-- Rendered from LABS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Bangchak Bottom Navigation -->
+  <nav id="mobileBottomNav">
+    <svg class="nav-bg-svg" viewBox="0 0 400 82" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="navGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#0b172a" stop-opacity="0.95"/>
+          <stop offset="100%" stop-color="#020813" stop-opacity="0.98"/>
+        </linearGradient>
+      </defs>
+      <!-- Bangchak Recessed Notch Path for 58px Action Gem -->
+      <path d="M 0,22 L 140,22 C 160,22 165,62 200,62 C 235,62 240,22 260,22 L 400,22 L 400,82 L 0,82 Z" fill="url(#navGrad)"/>
+    </svg>
+    <div class="nav-content">
+      <button class="nav-item" id="btnNavData">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>DATA</span>
+      </button>
+      <button class="nav-item" id="btnNavMarker">
+        <i class="fa-solid fa-qrcode"></i>
+        <span>MARKER</span>
+      </button>
+      
+      <div class="gem-btn-container">
+        <button class="gem-btn" id="btnGemAR" title="เปิด/ปิดโหมดกล้อง AR ส่องหน้าหนังสือ">
+          <i class="fa-solid fa-camera"></i>
+        </button>
+      </div>
+
+      <button class="nav-item" id="btnNavRotate">
+        <i class="fa-solid fa-arrows-rotate"></i>
+        <span>หมุนโมเดล</span>
+      </button>
+      <button class="nav-item" id="btnNavCtrl">
+        <i class="fa-solid fa-sliders"></i>
+        <span>CTRL</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- =========================================================
+       7. WebAR & Three.js 3D Interactive Engine Script
+       ========================================================= -->
+  <script>
+    // --- 8 Labs Master Catalog ---
+    const LABS = [
+      {
+        id: 1,
+        aruco_id: 0,
+        title: "แล็บ 1: Winogradsky Column",
+        fullTitle: "ปฏิบัติการที่ 1: การสร้างและศึกษานิเวศวิทยา Winogradsky Column",
+        short: "คอลัมน์วิโนกราดสกี",
+        biomolecule: "Photosynthetic Reaction Center",
+        pdb: "1PCR",
+        targetCard: "aruco_cards/card_lab1_aruco_0.png",
+        markerImg: "aruco_markers/aruco_id_0_lab01_winogradsky.png"
+      },
+      {
+        id: 2,
+        aruco_id: 1,
+        title: "แล็บ 2: Rhizobium & Leghemoglobin",
+        fullTitle: "ปฏิบัติการที่ 2: การแยกและทดสอบประสิทธิภาพ Rhizobium จากปมรากถั่ว",
+        short: "ปมรากถั่วและเลกเฮโมโกลบิน",
+        biomolecule: "Leghemoglobin (1GDJ)",
+        pdb: "1GDJ",
+        targetCard: "aruco_cards/card_lab2_aruco_1.png",
+        markerImg: "aruco_markers/aruco_id_1_lab02_rhizobium.png"
+      },
+      {
+        id: 3,
+        aruco_id: 2,
+        title: "แล็บ 3: จุลินทรีย์ละลายฟอสเฟต (PSI)",
+        fullTitle: "ปฏิบัติการที่ 3: การคัดเลือกจุลินทรีย์ละลายฟอสเฟต (PSI)",
+        short: "ละลายฟอสเฟต Pikovskaya",
+        biomolecule: "Acid Phosphatase / Phytase",
+        pdb: "1DKL",
+        targetCard: "aruco_cards/card_lab3_aruco_2.png",
+        markerImg: "aruco_markers/aruco_id_2_lab03_phosphate.png"
+      },
+      {
+        id: 4,
+        aruco_id: 3,
+        title: "แล็บ 4: ราปฏิปักษ์ Trichoderma (PIRG)",
+        fullTitle: "ปฏิบัติการที่ 4: การทดสอบกิจกรรมปฏิปักษ์ของ Trichoderma ด้วย Dual Culture",
+        short: "ไตรโคเดอร์มาปฏิปักษ์",
+        biomolecule: "Endochitinase (1CTN)",
+        pdb: "1CTN",
+        targetCard: "aruco_cards/card_lab4_aruco_3.png",
+        markerImg: "aruco_markers/aruco_id_3_lab04_trichoderma.png"
+      },
+      {
+        id: 5,
+        aruco_id: 4,
+        title: "แล็บ 5: ราไมคอร์ไรซา (AMF) ในราก",
+        fullTitle: "ปฏิบัติการที่ 5: การย้อมสีและตรวจหาเชื้อราไมคอร์ไรซาในรากพืช",
+        short: "ไมคอร์ไรซา Arbuscules",
+        biomolecule: "Phosphate Transporter (7EI8)",
+        pdb: "7EI8",
+        targetCard: "aruco_cards/card_lab5_aruco_4.png",
+        markerImg: "aruco_markers/aruco_id_4_lab05_mycorrhiza.png"
+      },
+      {
+        id: 6,
+        aruco_id: 5,
+        title: "แล็บ 6: ตรวจสอบคุณภาพปุ๋ยชีวภาพ",
+        fullTitle: "ปฏิบัติการที่ 6: การวิเคราะห์คุณภาพปุ๋ยชีวภาพและการตรวจหาเชื้อปนเปื้อน",
+        short: "Serial Dilution & CFU",
+        biomolecule: "Peptidoglycan Cell Wall",
+        pdb: "1VQQ",
+        targetCard: "aruco_cards/card_lab6_aruco_5.png",
+        markerImg: "aruco_markers/aruco_id_5_lab06_biofertilizer.png"
+      },
+      {
+        id: 7,
+        aruco_id: 6,
+        title: "แล็บ 7: การสกัด Soil DNA & Nanodrop",
+        fullTitle: "ปฏิบัติการที่ 7: การสกัด Soil DNA และการตรวจสอบความบริสุทธิ์",
+        short: "Soil DNA & Silica Column",
+        biomolecule: "B-DNA Double Helix (1BNA)",
+        pdb: "1BNA",
+        targetCard: "aruco_cards/card_lab7_aruco_6.png",
+        markerImg: "aruco_markers/aruco_id_6_lab07_soil_dna.png"
+      },
+      {
+        id: 8,
+        aruco_id: 7,
+        title: "แล็บ 8: PCR ตรวจโรคพืช & OpenCV",
+        fullTitle: "ปฏิบัติการที่ 8: การตรวจวินิจฉัยโรคพืชด้วย PCR และการประเมินภาพด้วย OpenCV",
+        short: "PCR Cycler & Vision AI",
+        biomolecule: "Taq DNA Polymerase (1TAU)",
+        pdb: "1TAU",
+        targetCard: "aruco_cards/card_lab8_aruco_7.png",
+        markerImg: "aruco_markers/aruco_id_7_lab08_pcr_diagnosis.png"
+      }
+    ];
+
+    let currentLabIdx = 0;
+    let isARActive = false;
+    let isAutoRotating = true;
+
+    // --- Three.js Setup ---
+    const container = document.getElementById('webgl-canvas-container');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 1.8, 4.2);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2.0));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.25;
+    container.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.maxPolarAngle = Math.PI * 0.85;
+
+    // --- Studio Three-Point Lighting ---
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(ambientLight);
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    keyLight.position.set(4, 6, 5);
+    scene.add(keyLight);
+
+    const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.6);
+    fillLight.position.set(-4, 3, -3);
+    scene.add(fillLight);
+
+    const rimLight = new THREE.DirectionalLight(0x10b981, 0.8);
+    rimLight.position.set(0, -3, -4);
+    scene.add(rimLight);
+
+    // Root Group holding the active 3D model
+    const labModelGroup = new THREE.Group();
+    scene.add(labModelGroup);
+
+    // Particle Group for dynamic effects
+    const particleGroup = new THREE.Group();
+    scene.add(particleGroup);
+
+    // =========================================================
+    // 3D Procedural Models for 8 Labs
+    // =========================================================
+
+    // Lab 1: Winogradsky Column
+    function createLab1Model() {
+      const g = new THREE.Group();
+      
+      // Glass Tube
+      const glassMat = new THREE.MeshPhysicalMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.35,
+        roughness: 0.08,
+        metalness: 0.05,
+        transmission: 0.85,
+        ior: 1.52,
+        side: THREE.DoubleSide
+      });
+      const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 3.2, 32, 1, true), glassMat);
+      g.add(tube);
+
+      // Glass Base & Stopper
+      const baseMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.3 });
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.7, 0.15, 32), baseMat);
+      base.position.y = -1.65;
+      g.add(base);
+
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.52, 0.18, 32), new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.4 }));
+      cap.position.y = 1.65;
+      g.add(cap);
+
+      // 4 Microbial Stratification Layers
+      // Layer 1: Anaerobic Mud (Desulfovibrio - Black)
+      const l1 = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.75, 24), new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.9 }));
+      l1.position.y = -1.2;
+      g.add(l1);
+
+      // Layer 2: Green Sulfur Bacteria (Chlorobium - Dark Forest Green)
+      const l2 = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.7, 24), new THREE.MeshStandardMaterial({ color: 0x064e3b, roughness: 0.7 }));
+      l2.position.y = -0.48;
+      g.add(l2);
+
+      // Layer 3: Purple Sulfur Bacteria (Chromatium - Magenta/Crimson)
+      const l3 = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.65, 24), new THREE.MeshStandardMaterial({ color: 0x831843, roughness: 0.6 }));
+      l3.position.y = 0.2;
+      g.add(l3);
+
+      // Layer 4: Cyanobacteria & Algae (Bright Greenish Cyan Water)
+      const l4 = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.95, 24), new THREE.MeshStandardMaterial({ color: 0x10b981, transparent: true, opacity: 0.75, roughness: 0.3 }));
+      l4.position.y = 1.0;
+      g.add(l4);
+
+      // Graduation rings
+      for (let i = -1.2; i <= 1.4; i += 0.35) {
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.505, 0.005, 8, 32), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 }));
+        ring.rotation.x = Math.PI / 2;
+        ring.position.y = i;
+        g.add(ring);
+      }
+
+      return g;
+    }
+
+    // Lab 2: Rhizobium & Legume Nodule + Leghemoglobin
+    function createLab2Model() {
+      const g = new THREE.Group();
+
+      // Main Root
+      const rootMat = new THREE.MeshStandardMaterial({ color: 0xd4a373, roughness: 0.8 });
+      const mainRoot = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.04, 3.2, 16), rootMat);
+      g.add(mainRoot);
+
+      // Lateral roots & Nodules
+      const noduleMat = new THREE.MeshStandardMaterial({ color: 0xf472b6, roughness: 0.5 }); // Pinkish legume nodule
+      const noduleCutMat = new THREE.MeshStandardMaterial({ color: 0xe11d48, roughness: 0.3 }); // Active red leghemoglobin
+
+      for (let i = 0; i < 9; i++) {
+        const y = -1.2 + (i * 0.3);
+        const angle = i * 1.6;
+        const branch = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.02, 0.8, 12), rootMat);
+        branch.position.set(Math.cos(angle)*0.25, y, Math.sin(angle)*0.25);
+        branch.rotation.z = Math.PI/3 * (i % 2 === 0 ? 1 : -1);
+        g.add(branch);
+
+        // Nodule Cluster
+        const nod = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 16), (i === 4 ? noduleCutMat : noduleMat));
+        nod.position.set(Math.cos(angle)*0.55, y, Math.sin(angle)*0.55);
+        g.add(nod);
+      }
+
+      // Floating Stylized Protein Ribbon (Leghemoglobin 1GDJ)
+      const proteinGroup = new THREE.Group();
+      proteinGroup.position.set(1.1, 0.4, 0);
+      
+      const helixMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.3, metalness: 0.2 });
+      const curve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-0.4, -0.5, 0),
+        new THREE.Vector3(-0.2, 0.2, 0.3),
+        new THREE.Vector3(0.1, 0.5, -0.2),
+        new THREE.Vector3(0.4, 0.1, 0.2),
+        new THREE.Vector3(0.2, -0.4, -0.3),
+        new THREE.Vector3(-0.1, -0.2, 0.1)
+      ], true);
+      const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 64, 0.06, 8, true), helixMat);
+      proteinGroup.add(tube);
+
+      // Central Heme Iron Sphere
+      const heme = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), new THREE.MeshStandardMaterial({ color: 0xef4444, metalness: 0.8, roughness: 0.2 }));
+      proteinGroup.add(heme);
+      g.add(proteinGroup);
+
+      return g;
+    }
+
+    // Lab 3: Phosphate Solubilizing Bacteria & PSI
+    function createLab3Model() {
+      const g = new THREE.Group();
+
+      // Glass Petri Dish
+      const dishMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.4, transmission: 0.8, roughness: 0.1 });
+      const dish = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 0.25, 36), dishMat);
+      g.add(dish);
+
+      // Cloudy Pikovskaya Agar
+      const agarMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.6 });
+      const agar = new THREE.Mesh(new THREE.CylinderGeometry(1.55, 1.55, 0.18, 36), agarMat);
+      agar.position.y = 0.02;
+      g.add(agar);
+
+      // Transparent Clear Zone (d_z)
+      const clearZoneMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.35, roughness: 0.2 });
+      const clearZone = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.95, 0.2, 32), clearZoneMat);
+      clearZone.position.y = 0.03;
+      g.add(clearZone);
+
+      // Central Bacterial Colony (d_c)
+      const colonyMat = new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.4 }); // Golden bacterial colony
+      const colony = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.4, 0.22, 24), colonyMat);
+      colony.position.y = 0.04;
+      g.add(colony);
+
+      // 3D Vernier Caliper Scale Beam
+      const caliperMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.7, roughness: 0.3 });
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.08, 0.04), caliperMat);
+      beam.position.set(0, 0.35, 0);
+      g.add(beam);
+
+      // Caliper Jaws
+      const jaw1 = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.4, 0.04), caliperMat);
+      jaw1.position.set(-0.95, 0.2, 0);
+      const jaw2 = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.4, 0.04), caliperMat);
+      jaw2.position.set(0.95, 0.2, 0);
+      g.add(jaw1);
+      g.add(jaw2);
+
+      return g;
+    }
+
+    // Lab 4: Trichoderma Antagonistic Confrontation (PIRG)
+    function createLab4Model() {
+      const g = new THREE.Group();
+
+      // Petri dish
+      const dishMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.35, transmission: 0.8, roughness: 0.1 });
+      const dish = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 0.2, 36), dishMat);
+      g.add(dish);
+
+      // PDA Agar
+      const agarMat = new THREE.MeshStandardMaterial({ color: 0xfef3c7, roughness: 0.5 });
+      const agar = new THREE.Mesh(new THREE.CylinderGeometry(1.55, 1.55, 0.16, 36), agarMat);
+      agar.position.y = 0.01;
+      g.add(agar);
+
+      // Trichoderma Colony (Left - Dark Green with Spores)
+      const triMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.85 });
+      const tri = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.9, 0.2, 24, 1, false, 0, Math.PI), triMat);
+      tri.position.set(-0.45, 0.03, 0);
+      tri.rotation.y = Math.PI / 2;
+      g.add(tri);
+
+      // Pathogen Colony (Right - Fusarium/Phytophthora White/Pink)
+      const pathoMat = new THREE.MeshStandardMaterial({ color: 0xfda4af, roughness: 0.9 });
+      const patho = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.6, 0.2, 24, 1, false, 0, Math.PI), pathoMat);
+      patho.position.set(0.55, 0.03, 0);
+      patho.rotation.y = -Math.PI / 2;
+      g.add(patho);
+
+      // Confrontation / Inhibition Zone Line
+      const zoneMat = new THREE.MeshStandardMaterial({ color: 0x059669, roughness: 0.3 });
+      const line = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.22, 1.6), zoneMat);
+      line.position.set(0.05, 0.03, 0);
+      g.add(line);
+
+      return g;
+    }
+
+    // Lab 5: Arbuscular Mycorrhizal Fungi (AMF) Root Colonization
+    function createLab5Model() {
+      const g = new THREE.Group();
+
+      // Root Cortex Cylinder
+      const rootMat = new THREE.MeshPhysicalMaterial({ color: 0xf1f5f9, transparent: true, opacity: 0.45, roughness: 0.3, transmission: 0.6 });
+      const root = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 2.8, 32), rootMat);
+      root.rotation.z = Math.PI / 2;
+      g.add(root);
+
+      // Fungal Structures inside (Cobalt Blue Trypan Blue Stained)
+      const blueMat = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.3 }); // Trypan Blue
+
+      // Hyphae (Intercellular Lines)
+      for (let i = -1.0; i <= 1.0; i += 0.4) {
+        const hypha = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 2.4, 8), blueMat);
+        hypha.rotation.z = Math.PI / 2;
+        hypha.position.set(0, i * 0.4, (i % 2 === 0 ? 0.2 : -0.2));
+        g.add(hypha);
+      }
+
+      // Arbuscules (Branched Tree-like Clusters)
+      for (let a = -0.8; a <= 0.8; a += 0.5) {
+        const arbGroup = new THREE.Group();
+        arbGroup.position.set(a, 0.25, 0.1);
+        for (let b = 0; b < 6; b++) {
+          const twig = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), blueMat);
+          twig.position.set((Math.random()-0.5)*0.25, (Math.random()-0.5)*0.25, (Math.random()-0.5)*0.25);
+          arbGroup.add(twig);
+        }
+        g.add(arbGroup);
+      }
+
+      // Vesicles (Oval Storage Organs)
+      for (let v = -0.7; v <= 0.7; v += 0.45) {
+        const ves = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 12), blueMat);
+        ves.scale.set(1.4, 0.9, 0.9);
+        ves.position.set(v, -0.3, (v % 2 === 0 ? -0.2 : 0.2));
+        g.add(ves);
+      }
+
+      // Gridline Wireframe
+      const grid = new THREE.GridHelper(3.0, 6, 0x10b981, 0x334155);
+      grid.position.y = -1.1;
+      g.add(grid);
+
+      return g;
+    }
+
+    // Lab 6: Biofertilizer Quality & Serial Dilution Tubes
+    function createLab6Model() {
+      const g = new THREE.Group();
+
+      // Test Tube Rack
+      const rackMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.5 });
+      const topPlate = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.08, 0.8), rackMat);
+      topPlate.position.y = 0.5;
+      const btmPlate = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.08, 0.8), rackMat);
+      btmPlate.position.y = -0.9;
+      g.add(topPlate);
+      g.add(btmPlate);
+
+      // 6 Test Tubes (10^-1 to 10^-6)
+      const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.4, transmission: 0.85, roughness: 0.1 });
+      const brothMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, transparent: true, opacity: 0.7, roughness: 0.3 }); // Yellowish broth
+
+      for (let i = 0; i < 6; i++) {
+        const x = -1.15 + (i * 0.46);
+        const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 1.6, 16, 1, true), glassMat);
+        tube.position.set(x, 0, 0);
+        g.add(tube);
+
+        // Broth liquid volume (decreasing turbidity)
+        const liquidH = 1.0;
+        const liquid = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, liquidH, 16), brothMat);
+        liquid.position.set(x, -0.25, 0);
+        g.add(liquid);
+      }
+
+      return g;
+    }
+
+    // Lab 7: Soil DNA Extraction & Double Helix
+    function createLab7Model() {
+      const g = new THREE.Group();
+
+      // 1. Bead Beater Tube (Left)
+      const tubeMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.6, roughness: 0.2 });
+      const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.3, 1.6, 24), tubeMat);
+      tube.position.set(-1.1, 0, 0);
+      g.add(tube);
+
+      const capMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.4 });
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.25, 24), capMat);
+      cap.position.set(-1.1, 0.9, 0);
+      g.add(cap);
+
+      // Soil Lysis Beads Inside Tube
+      for (let i = 0; i < 18; i++) {
+        const bead = new THREE.Mesh(new THREE.SphereGeometry(0.06, 12, 12), new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.8 }));
+        bead.position.set(-1.1 + (Math.random()-0.5)*0.35, -0.6 + (Math.random()-0.5)*0.4, (Math.random()-0.5)*0.35);
+        g.add(bead);
+      }
+
+      // 2. 3D Rotating DNA Double Helix (Center-Right)
+      const dnaGroup = new THREE.Group();
+      dnaGroup.position.set(0.6, 0, 0);
+
+      const backboneMat1 = new THREE.MeshStandardMaterial({ color: 0x06b6d4, roughness: 0.3 });
+      const backboneMat2 = new THREE.MeshStandardMaterial({ color: 0x3b82f6, roughness: 0.3 });
+      const basePairMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.4 });
+
+      const turns = 3;
+      const height = 2.6;
+      const radius = 0.55;
+
+      for (let i = 0; i < 28; i++) {
+        const t = (i / 28) * Math.PI * 2 * turns;
+        const y = -height/2 + (i / 28) * height;
+
+        const x1 = Math.cos(t) * radius;
+        const z1 = Math.sin(t) * radius;
+        const s1 = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 12), backboneMat1);
+        s1.position.set(x1, y, z1);
+        dnaGroup.add(s1);
+
+        const x2 = Math.cos(t + Math.PI) * radius;
+        const z2 = Math.sin(t + Math.PI) * radius;
+        const s2 = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 12), backboneMat2);
+        s2.position.set(x2, y, z2);
+        dnaGroup.add(s2);
+
+        // Base pair connecting bar
+        const rbar = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, radius * 2, 8), basePairMat);
+        rbar.position.set(0, y, 0);
+        rbar.rotation.y = -t;
+        rbar.rotation.z = Math.PI / 2;
+        dnaGroup.add(rbar);
+      }
+      g.add(dnaGroup);
+
+      return g;
+    }
+
+    // Lab 8: PCR Diagnosis & OpenCV Computer Vision
+    function createLab8Model() {
+      const g = new THREE.Group();
+
+      // Mini PCR Thermal Cycler Chassis
+      const pcrBodyMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.4 });
+      const pcr = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.9, 1.8), pcrBodyMat);
+      pcr.position.set(-0.6, -0.4, 0);
+      g.add(pcr);
+
+      // Heated Lid Display
+      const screenMat = new THREE.MeshBasicMaterial({ color: 0x0284c7 });
+      const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.45), screenMat);
+      screen.position.set(-0.6, 0.06, 0.6);
+      screen.rotation.x = -Math.PI / 4;
+      g.add(screen);
+
+      // Agarose Gel Electrophoresis Box (Right)
+      const gelMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, transparent: true, opacity: 0.65, roughness: 0.2 });
+      const gel = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.12, 1.5), gelMat);
+      gel.position.set(0.9, -0.2, 0);
+      g.add(gel);
+
+      // Glowing DNA Bands (UV Fluorescent 450 bp diagnostic band)
+      const bandMat = new THREE.MeshBasicMaterial({ color: 0xf43f5e }); // Bright fluorescent band
+      for (let b = -0.5; b <= 0.5; b += 0.25) {
+        const band = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 0.03), bandMat);
+        band.position.set(0.9 + b, -0.19, (b === 0 ? 0.2 : 0.35));
+        g.add(band);
+      }
+
+      // OpenCV Leaf Bounding Box (Vision AI)
+      const leafMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.7, side: THREE.DoubleSide });
+      const leaf = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.02, 16), leafMat);
+      leaf.position.set(0.9, 0.7, 0);
+      leaf.rotation.x = Math.PI / 3;
+      g.add(leaf);
+
+      // Green AI Bounding Box Wireframe
+      const bbox = new THREE.BoxHelper(leaf, 0x10b981);
+      g.add(bbox);
+
+      return g;
+    }
+
+    // Factory switcher
+    const MODEL_FACTORIES = [
+      createLab1Model,
+      createLab2Model,
+      createLab3Model,
+      createLab4Model,
+      createLab5Model,
+      createLab6Model,
+      createLab7Model,
+      createLab8Model
+    ];
+
+    function loadLabModel(index) {
+      currentLabIdx = index;
+      const lab = LABS[index];
+
+      // Clear current model
+      while(labModelGroup.children.length > 0) {
+        labModelGroup.remove(labModelGroup.children[0]);
+      }
+
+      // Build new model
+      const model = MODEL_FACTORIES[index]();
+      labModelGroup.add(model);
+      labModelGroup.position.set(0, 0, 0);
+
+      // Update UI elements
+      document.getElementById('capsuleText').textContent = `${lab.title} (Marker ID ${lab.aruco_id})`;
+      renderTelemetry(lab);
+      renderControls(lab);
+    }
+
+    // Dynamic Telemetry Renderer
+    function renderTelemetry(lab) {
+      const container = document.getElementById('telemetryContent');
+      let html = '';
+      if (lab.id === 1) {
+        html = `
+          <div class="telemetry-card">
+            <div class="t-label">OXYGEN GRADIENT (TOP)</div>
+            <div class="t-val">21.0 % (Oxic)</div>
+            <div class="t-sub">Cyanobacteria & Microalgae active</div>
+          </div>
+          <div class="telemetry-card" style="margin-top: 8px;">
+            <div class="t-label">HYDROGEN SULFIDE H2S (BOTTOM)</div>
+            <div class="t-val">8.4 mM (Anoxic)</div>
+            <div class="t-sub">Desulfovibrio sulfur reduction</div>
+          </div>
+        `;
+      } else if (lab.id === 2) {
+        html = `
+          <div class="telemetry-card">
+            <div class="t-label">LEGHEMOGLOBIN STATUS</div>
+            <div class="t-val">Active (Pink)</div>
+            <div class="t-sub">Binding free O2 < 10 nM</div>
+          </div>
+          <div class="telemetry-card" style="margin-top: 8px;">
+            <div class="t-label">NITROGEN FIXATION RATE</div>
+            <div class="t-val">42.8 mg N / g root</div>
+            <div class="t-sub">RBRU-B01 + RBRU-A03 Consortium</div>
+          </div>
+        `;
+      } else if (lab.id === 3) {
+        html = `
+          <div class="telemetry-card">
+            <div class="t-label">CLEAR ZONE DIAMETER (d_z)</div>
+            <div class="t-val">24.5 mm</div>
+          </div>
+          <div class="telemetry-card" style="margin-top: 8px;">
+            <div class="t-label">SOLUBILIZATION INDEX (PSI)</div>
+            <div class="t-val">2.45 (High PSI)</div>
+            <div class="t-sub">Threshold: PSI >= 2.0 = Excellent</div>
+          </div>
+        `;
+      } else if (lab.id === 4) {
+        html = `
+          <div class="telemetry-card">
+            <div class="t-label">RADIAL GROWTH INHIBITION (PIRG)</div>
+            <div class="t-val">74.2 %</div>
+            <div class="t-sub">Trichoderma vs Fusarium oxysporum</div>
+          </div>
+          <div class="telemetry-card" style="margin-top: 8px;">
+            <div class="t-label">CHITINASE ACTIVITY</div>
+            <div class="t-val">128.5 U/mL</div>
+          </div>
+        `;
+      } else if (lab.id === 5) {
+        html = `
+          <div class="telemetry-card">
+            <div class="t-label">ROOT INTERSECTIONS</div>
+            <div class="t-val">100 / 100 points</div>
+          </div>
+          <div class="telemetry-card" style="margin-top: 8px;">
+            <div class="t-label">AMF COLONIZATION</div>
+            <div class="t-val">68.0 %</div>
+            <div class="t-sub">Arbuscules + Vesicles observed</div>
+          </div>
+        `;
+      } else if (lab.id === 6) {
+        html = `
+          <div class="telemetry-card">
+            <div class="t-label">VIABLE CELL COUNT</div>
+            <div class="t-val">4.5 x 10^8 CFU/g</div>
+            <div class="t-sub">DOA Standard: >= 1.0 x 10^8 CFU/g</div>
+          </div>
+          <div class="telemetry-card" style="margin-top: 8px;">
+            <div class="t-label">CONTAMINATION (MACCONKEY)</div>
+            <div class="t-val" style="color: #10b981;">0 CFU (PASS)</div>
+            <div class="t-sub">No E. coli / Coliforms detected</div>
+          </div>
+        `;
+      } else if (lab.id === 7) {
+        html = `
+          <div class="telemetry-card">
+            <div class="t-label">NANODROP CONCENTRATION</div>
+            <div class="t-val">142.6 ng/uL</div>
+          </div>
+          <div class="telemetry-card" style="margin-top: 8px;">
+            <div class="t-label">PURITY RATIO (A260 / A280)</div>
+            <div class="t-val">1.85 (Pure DNA)</div>
+            <div class="t-sub">Optimal Range: 1.80 -- 2.00</div>
+          </div>
+        `;
+      } else if (lab.id === 8) {
+        html = `
+          <div class="telemetry-card">
+            <div class="t-label">PCR DIAGNOSTIC BAND</div>
+            <div class="t-val">450 bp (Ypt1 +)</div>
+            <div class="t-sub">Phytophthora palmivora confirmed</div>
+          </div>
+          <div class="telemetry-card" style="margin-top: 8px;">
+            <div class="t-label">OPENCV SEVERITY (DSI)</div>
+            <div class="t-val">28.5 % Lesion Area</div>
+          </div>
+        `;
+      }
+      container.innerHTML = html;
+    }
+
+    // Dynamic Controls Renderer
+    function renderControls(lab) {
+      const container = document.getElementById('controlsContent');
+      container.innerHTML = `
+        <div class="ctrl-slider-group">
+          <div class="ctrl-label"><span>ความเข้มแสง (Studio Intensity)</span><span id="txtLightVal">1.2x</span></div>
+          <input type="range" class="ctrl-slider" id="sliderLight" min="0.4" max="2.5" step="0.1" value="1.2">
+        </div>
+        <div class="ctrl-slider-group">
+          <div class="ctrl-label"><span>ขนาดโมเดล 3D (Scale)</span><span id="txtScaleVal">1.0x</span></div>
+          <input type="range" class="ctrl-slider" id="sliderScale" min="0.5" max="2.0" step="0.05" value="1.0">
+        </div>
+        <div class="ctrl-slider-group">
+          <div class="ctrl-label"><span>หมุนแกน Y (Rotation)</span><span id="txtRotVal">0 deg</span></div>
+          <input type="range" class="ctrl-slider" id="sliderRot" min="0" max="360" step="1" value="0">
+        </div>
+      `;
+
+      document.getElementById('sliderLight').addEventListener('input', (e) => {
+        const v = parseFloat(e.target.value);
+        keyLight.intensity = v;
+        document.getElementById('txtLightVal').textContent = v.toFixed(1) + 'x';
+      });
+
+      document.getElementById('sliderScale').addEventListener('input', (e) => {
+        const v = parseFloat(e.target.value);
+        labModelGroup.scale.set(v, v, v);
+        document.getElementById('txtScaleVal').textContent = v.toFixed(2) + 'x';
+      });
+
+      document.getElementById('sliderRot').addEventListener('input', (e) => {
+        const v = parseFloat(e.target.value);
+        labModelGroup.rotation.y = THREE.MathUtils.degToRad(v);
+        document.getElementById('txtRotVal').textContent = Math.round(v) + ' deg';
+      });
+    }
+
+    // =========================================================
+    // Camera & ArUco Real-time Tracking
+    // =========================================================
+    let arucoTrackerInstance = null;
+    try {
+      if (typeof ArUcoTracker !== 'undefined') {
+        arucoTrackerInstance = new ArUcoTracker({ width: 480, height: 360, markerPhysicalSize: 1.0 });
+        if (typeof ARUCO_DICT_6X6_MAP !== 'undefined') {
+          arucoTrackerInstance.setDictionary(ARUCO_DICT_6X6_MAP);
+        }
+      }
+    } catch(e) { console.warn('ArUco init:', e); }
+
+    const videoEl = document.getElementById('camera-video');
+    const reticleEl = document.getElementById('ar-reticle');
+
+    async function toggleARCamera() {
+      if (!isARActive) {
+        // Start Camera
+        try {
+          let stream = null;
+          try {
+            stream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+            });
+          } catch(e) {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          }
+          videoEl.srcObject = stream;
+          videoEl.style.display = 'block';
+          reticleEl.style.display = 'block';
+          document.body.classList.add('ar-active');
+          await videoEl.play();
+          isARActive = true;
+          document.getElementById('reticleTag').innerHTML = `<i class="fa-solid fa-camera"></i> ส่อง Marker แล็บ ${LABS[currentLabIdx].id} ในหนังสือ`;
+        } catch(err) {
+          alert('ไม่สามารถเปิดกล้องได้ (โปรดเข้าผ่าน HTTPS หรือ localhost): ' + err.message);
+        }
+      } else {
+        // Stop Camera
+        if (videoEl.srcObject) {
+          videoEl.srcObject.getTracks().forEach(t => t.stop());
+          videoEl.srcObject = null;
+        }
+        videoEl.style.display = 'none';
+        reticleEl.style.display = 'none';
+        document.body.classList.remove('ar-active');
+        isARActive = false;
+        labModelGroup.position.set(0, 0, 0);
+      }
+    }
+
+    // Animation Loop
+    let clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+
+      if (isAutoRotating && !isARActive) {
+        labModelGroup.rotation.y += 0.012;
+      }
+
+      // ArUco tracking frame sampling
+      if (isARActive && arucoTrackerInstance && videoEl.readyState >= 2) {
+        const markers = arucoTrackerInstance.detect(videoEl);
+        if (markers && markers.length > 0) {
+          const m = markers[0];
+          reticleEl.classList.add('locked');
+          // Switch to matched lab if ArUco matches
+          if (m.id >= 0 && m.id < LABS.length && m.id !== currentLabIdx) {
+            loadLabModel(m.id);
+          }
+        } else {
+          reticleEl.classList.remove('locked');
+        }
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // =========================================================
+    // UI Event Handlers & Modal
+    // =========================================================
+    document.getElementById('btnGemAR').addEventListener('click', toggleARCamera);
+
+    // Modal Lab Picker
+    const modal = document.getElementById('labPickerModal');
+    document.getElementById('labCapsule').addEventListener('click', () => {
+      renderLabList();
+      modal.style.display = 'flex';
+    });
+    document.getElementById('btnCloseModal').addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+
+    function renderLabList() {
+      const c = document.getElementById('labListContainer');
+      c.innerHTML = LABS.map((lab, idx) => `
+        <div class="lab-option-btn ${idx === currentLabIdx ? 'active' : ''}" onclick="selectLab(${idx})">
+          <div class="lab-num-badge">${lab.id}</div>
+          <div style="flex: 1;">
+            <div style="font-weight: 600; font-size: 0.84rem;">${lab.title}</div>
+            <div style="font-size: 0.68rem; color: #94a3b8;">ArUco ID: ${lab.aruco_id} • ${lab.biomolecule}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.selectLab = function(idx) {
+      loadLabModel(idx);
+      modal.style.display = 'none';
+    };
+
+    // Drawers
+    const drawerL = document.getElementById('drawerLeft');
+    const drawerR = document.getElementById('drawerRight');
+    document.getElementById('btnNavData').addEventListener('click', () => {
+      drawerL.classList.toggle('open');
+      drawerR.classList.remove('open');
+    });
+    document.getElementById('btnNavCtrl').addEventListener('click', () => {
+      drawerR.classList.toggle('open');
+      drawerL.classList.remove('open');
+    });
+
+    document.getElementById('btnNavRotate').addEventListener('click', () => {
+      isAutoRotating = !isAutoRotating;
+      document.getElementById('btnNavRotate').classList.toggle('active', isAutoRotating);
+    });
+
+    document.getElementById('btnResetView').addEventListener('click', () => {
+      camera.position.set(0, 1.8, 4.2);
+      controls.target.set(0, 0, 0);
+      labModelGroup.rotation.set(0, 0, 0);
+    });
+
+    // Marker preview modal
+    document.getElementById('btnNavMarker').addEventListener('click', () => {
+      const lab = LABS[currentLabIdx];
+      window.open(lab.targetCard, '_blank');
+    });
+
+    document.getElementById('btnHelp').addEventListener('click', () => {
+      alert("วิธีใช้งาน AR 3D ARUCO Book:\n1. เปิดหน้าคู่มือปฏิบัติการในหนังสือ หรือเปิดการ์ด ArUco Marker\n2. กดปุ่มไอคอนกล้องสีเขียวตรงกลางแถบด้านล่าง\n3. ส่องกล้องไปที่ภาพ ArUco Marker ในหน้าแล็บนั้นๆ\n4. โมเดล 3 มิติจะปรากฏขึ้นมาพร้อมข้อมูล Telemetry และการคำนวณสด!");
+    });
+
+    // Sidecar Biomolecular Structure Viewer Link
+    document.getElementById('btnSidecar').addEventListener('click', () => {
+      const lab = LABS[currentLabIdx];
+      alert(`โมเลกุลชีวภาพสำหรับแล็บนี้: ${lab.biomolecule} (PDB ID: ${lab.pdb})\nคุณสามารถเปิดสำรวจผ่าน Biomolecular Structure Viewer ในหน้าจอข้างเคียง`);
+    });
+    document.getElementById('btnOpenSidecarDirect').addEventListener('click', () => {
+      const lab = LABS[currentLabIdx];
+      alert(`[Biomolecular Structure Viewer](sidecar://science/biomolecular_structure_viewer/ui.html)\nโมเลกุล: ${lab.biomolecule} (${lab.pdb})`);
+    });
+
+    // Window Resize
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Initial Load: Lab 1
+    loadLabModel(0);
+  </script>
+</body>
+</html>

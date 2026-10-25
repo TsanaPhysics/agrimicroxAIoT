@@ -1,0 +1,44 @@
+\chapter{ภาคผนวก ค — สถาปัตยกรรมฮาร์ดแวร์ แผนผังวงจร และระบบโทรมาตร AIoT ทางการเกษตร}
+\label{appendix:c_schematics}
+
+\noindent สถาปัตยกรรมเครือข่ายเซนเซอร์ดินและสถานีโทรมาตรไร้สาย LoRaWAN สำหรับตรวจติดตามไมโครไบโอมดินและควบคุมสภาวะแวดล้อมที่เหมาะสมต่อจุลินทรีย์ในแปลงเกษตร\index{LoRaWAN@LoRaWAN Telemetry}\index{Modbus RTU@Modbus RTU Protocol}\index{ESP32-S3@ESP32-S3 Microcontroller}
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[node distance=1.8cm, auto, >=Stealth]
+    \node[draw=navyprimary, fill=mbLightGreen!40, rounded corners, text width=3.4cm, align=center] (sensor) {\textbf{เซนเซอร์วัดดิน 7-in-1}\\(NPK, pH, EC, Temp, Moisture)};
+    \node[draw=navyprimary, fill=mbCyan!15, rounded corners, right=of sensor, text width=3.2cm, align=center] (node) {\textbf{โหนดรับส่งข้อมูล}\\(ESP32-S3 + RS485 Transceiver)};
+    \node[draw=navyprimary, fill=mbAmber!20, rounded corners, right=of node, text width=3.0cm, align=center] (lora) {\textbf{โมดูลสื่อสารไร้สาย}\\(LoRa SX1262 920-925MHz)};
+    \node[draw=navyprimary, fill=white, rounded corners, below=of node, text width=3.2cm, align=center] (cloud) {\textbf{Cloud AI Platform}\\(Time-series + Deep Learning)};
+    
+    \draw[->, thick, color=navyprimary] (sensor) -- node[above]{\footnotesize RS485 Modbus} (node);
+    \draw[->, thick, color=navyprimary] (node) -- node[above]{\footnotesize SPI} (lora);
+    \draw[->, dashed, thick, color=mbCyan!80!black] (lora) |- (cloud);
+\end{tikzpicture}
+\caption{สถาปัตยกรรมระบบโทรมาตรเก็บข้อมูลดินเพื่อวิเคราะห์ปฏิสัมพันธ์ไมโครไบโอมแปลงเกษตร}
+\label{fig:agri_telemetry_schematics}
+\end{figure}
+
+\section{โปรโตคอลการสื่อสาร Modbus RTU สำหรับเซนเซอร์ดิน}
+
+เซนเซอร์วัดดินมาตรฐานอุตสาหกรรมทำงานบนการสื่อสารแบบอนุกรม RS485 ด้วยโพรโทคอล Modbus RTU ความเร็ว Baud Rate มาตรฐาน 9600 bps, 8 Data bits, 1 Stop bit, No Parity โดยมี Register Address สำคัญดังนี้:
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{cclc}
+\toprule
+\textbf{Register (Hex)} & \textbf{พารามิเตอร์} & \textbf{หน่วยวัด} & \textbf{ตัวคูณ (Multiplier)} \\
+\midrule
+\texttt{0x0000} & ความชื้นในดิน (Soil Moisture) & ร้อยละ (\%) & 0.1 \\
+\texttt{0x0001} & อุณหภูมิดิน (Soil Temperature) & องศาเซลเซียส (\degree C) & 0.1 \\
+\texttt{0x0002} & สภาพการนำไฟฟ้า (EC) & ไมโครซีเมนต์/ซม. ($\mu$S/cm) & 1.0 \\
+\texttt{0x0003} & ความเป็นกรด-ด่าง (Soil pH) & ระดับ pH & 0.1 \\
+\texttt{0x0004} & ไนโตรเจนในดิน (Nitrogen: N) & มิลลิกรัม/กิโลกรัม (mg/kg) & 1.0 \\
+\texttt{0x0005} & ฟอสฟอรัสในดิน (Phosphorus: P) & มิลลิกรัม/กิโลกรัม (mg/kg) & 1.0 \\
+\texttt{0x0006} & โพแทสเซียมในดิน (Potassium: K) & มิลลิกรัม/กิโลกรัม (mg/kg) & 1.0 \\
+\bottomrule
+\end{tabular}
+\caption{ตารางรีจิสเตอร์ Modbus RTU ของหัววัดดิน 7-in-1 สำหรับระบบโทรมาตรจุลินทรีย์}
+\label{tab:modbus_registers}
+\end{table}

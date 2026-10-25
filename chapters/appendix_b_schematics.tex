@@ -1,0 +1,77 @@
+\chapter{ภาคผนวก ข — แผนผังวงจรอิเล็กทรอนิกส์และเฟิร์มแวร์ระบบโทรมาตร AIoT ในแปลงเกษตร}
+\label{appendix:b_schematics}
+
+\noindent สถาปัตยกรรมเครือข่ายเซนเซอร์ดินและสถานีโทรมาตรไร้สาย LoRaWAN สำหรับตรวจติดตามไมโครไบโอมดินและควบคุมสภาวะแวดล้อมที่เหมาะสมต่อจุลินทรีย์ในแปลงเกษตร\index{LoRaWAN@LoRaWAN Telemetry}\index{Modbus RTU@Modbus RTU Protocol}\index{ESP32-S3@ESP32-S3 Microcontroller}
+
+\begin{figure}[ht]
+\centering
+\resizebox{0.95\textwidth}{!}{
+\begin{tikzpicture}[node distance=1.4cm, auto, >=Stealth]
+    \node[draw=navyprimary, fill=mbLightGreen!40, rounded corners, text width=3.2cm, align=center] (sensor) {\textbf{เซนเซอร์วัดดิน 7-in-1}\\(NPK, pH, EC, Temp, Moisture)};
+    \node[draw=navyprimary, fill=mbCyan!15, rounded corners, right=of sensor, text width=3.0cm, align=center] (node) {\textbf{โหนดรับส่งข้อมูล}\\(ESP32-S3 + RS485 Transceiver)};
+    \node[draw=navyprimary, fill=mbAmber!20, rounded corners, right=of node, text width=2.8cm, align=center] (lora) {\textbf{โมดูลสื่อสารไร้สาย}\\(LoRa SX1262 920-925MHz)};
+    \node[draw=navyprimary, fill=white, rounded corners, below=of node, text width=3.0cm, align=center] (cloud) {\textbf{Cloud AI Platform}\\(Time-series + Deep Learning)};
+    
+    \draw[->, thick, color=navyprimary] (sensor) -- node[above]{\footnotesize RS485 Modbus} (node);
+    \draw[->, thick, color=navyprimary] (node) -- node[above]{\footnotesize SPI} (lora);
+    \draw[->, dashed, thick, color=mbCyan!80!black] (lora) |- (cloud);
+\end{tikzpicture}
+}
+\caption{สถาปัตยกรรมระบบโทรมาตรเก็บข้อมูลดินเพื่อวิเคราะห์ปฏิสัมพันธ์ไมโครไบโอมแปลงเกษตร}
+\label{fig:agri_telemetry_schematics_app}
+\end{figure}
+
+\section{โปรโตคอลการสื่อสาร Modbus RTU สำหรับเซนเซอร์ดิน}
+
+เซนเซอร์วัดดินมาตรฐานอุตสาหกรรมทำงานบนการสื่อสารแบบอนุกรม RS485 ด้วยโพรโทคอล Modbus RTU ความเร็ว Baud Rate มาตรฐาน 9600 bps, 8 Data bits, 1 Stop bit, No Parity โดยมี Register Address สำคัญดังนี้:
+
+\begin{table}[ht]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lllc}
+\toprule
+\textbf{Register (Hex)} & \textbf{พารามิเตอร์} & \textbf{หน่วยวัด} & \textbf{ตัวคูณ (Multiplier)} \\
+\midrule
+\texttt{0x0000} & ความชื้นในดิน (Moisture) & ร้อยละ (\%) & 0.1 \\
+\texttt{0x0001} & อุณหภูมิดิน (Temperature) & องศาเซลเซียส (\degree C) & 0.1 \\
+\texttt{0x0002} & สภาพการนำไฟฟ้า (EC) & $\mu$S/cm & 1.0 \\
+\texttt{0x0003} & ความเป็นกรด-ด่าง (Soil pH) & ระดับ pH & 0.1 \\
+\texttt{0x0004} & ไนโตรเจนในดิน (Nitrogen: N) & mg/kg & 1.0 \\
+\texttt{0x0005} & ฟอสฟอรัสในดิน (Phosphorus: P) & mg/kg & 1.0 \\
+\texttt{0x0006} & โพแทสเซียมในดิน (Potassium: K) & mg/kg & 1.0 \\
+\bottomrule
+\end{tabular}
+\caption{ตารางรีจิสเตอร์ Modbus RTU ของหัววัดดิน 7-in-1 สำหรับระบบโทรมาตรจุลินทรีย์}
+\label{tab:modbus_registers_app}
+\end{table}
+
+\section{ตัวอย่างเฟิร์มแวร์ C++/Arduino สำหรับ ESP32 อ่านค่า Modbus RTU}
+\begin{lstlisting}[language=C++, caption={โค้ดเฟิร์มแวร์ ESP32 อ่านค่าเซนเซอร์ดิน RS485 และส่งสัญญาณ LoRa}]
+#include <HardwareSerial.h>
+
+HardwareSerial modbusSerial(2); // RX=16, TX=17
+const byte soilQuery[] = {0x01, 0x03, 0x00, 0x00, 0x00, 0x07, 0x04, 0x08};
+byte responseBuffer[19];
+
+void setup() {
+  Serial.begin(115200);
+  modbusSerial.begin(9600, SERIAL_8N1, 16, 17);
+}
+
+void loop() {
+  modbusSerial.write(soilQuery, sizeof(soilQuery));
+  delay(200);
+  
+  if (modbusSerial.available() >= 19) {
+    modbusSerial.readBytes(responseBuffer, 19);
+    float moisture = ((responseBuffer[3] << 8) | responseBuffer[4]) * 0.1;
+    float temp = ((responseBuffer[5] << 8) | responseBuffer[6]) * 0.1;
+    int ec = (responseBuffer[7] << 8) | responseBuffer[8];
+    float ph = ((responseBuffer[9] << 8) | responseBuffer[10]) * 0.1;
+    
+    Serial.printf("[SENSOR] M: %.1f%%, T: %.1fC, EC: %d uS/cm, pH: %.1f\n", moisture, temp, ec, ph);
+  }
+  delay(60000); // อ่านค่าทุก 1 นาที
+}
+\end{lstlisting}

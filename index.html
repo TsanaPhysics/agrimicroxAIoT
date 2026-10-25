@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>จุลชีววิทยาการเกษตรและเทคโนโลยี AIoT — Agricultural Microbiology & AIoT</title>
+  <meta name="description" content="ตำราวิชาการมาตรฐาน B5 และระบบความจริงเสริม AR 3D Interactive Book (ArUco DICT_6X6_250) คณะวิทยาศาสตร์และเทคโนโลยี มหาวิทยาลัยราชภัฏรำไพพรรณี">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(15, 23, 42, 0.75);
+      --primary: #10b981;
+      --primary-glow: rgba(16, 185, 129, 0.35);
+      --accent: #06b6d4;
+      --gold: #f59e0b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: rgba(255, 255, 255, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Prompt', sans-serif;
+      min-height: 100vh;
+      line-height: 1.6;
+      background-image: 
+        radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(6, 182, 212, 0.12) 0%, transparent 40%);
+    }
+    header {
+      padding: 40px 20px 20px;
+      text-align: center;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: 2.3rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #ffffff 40%, #a7f3d0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      font-size: 1.15rem;
+      color: var(--accent);
+      margin-bottom: 12px;
+      font-weight: 400;
+    }
+    .authors {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+    .main-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 768px) {
+      .main-container { grid-template-columns: 1fr; }
+      h1 { font-size: 1.8rem; }
+    }
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+    }
+    .card-title {
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+    }
+    .card-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 20px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      text-decoration: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 1rem;
+      box-shadow: 0 4px 15px var(--primary-glow);
+      transition: all 0.2s ease;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      color: #e2e8f0;
+      box-shadow: none;
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+    .features-list {
+      list-style: none;
+      margin: 16px 0;
+    }
+    .features-list li {
+      font-size: 0.9rem;
+      color: #cbd5e1;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .features-list li i {
+      color: var(--primary);
+      font-size: 0.8rem;
+    }
+    footer {
+      text-align: center;
+      padding: 40px 20px;
+      color: #64748b;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="badge"><i class="fa-solid fa-cube"></i> AR 3D ArUco Book System</div>
+    <h1>จุลชีววิทยาการเกษตรและเทคโนโลยี AIoT</h1>
+    <div class="subtitle">Agricultural Microbiology and AIoT Technology</div>
+    <div class="authors">
+      ผศ.ดร.ชีวะ ทัศนา &bull; ผศ.ดร.จิรภัทร จันทมาลี<br>
+      คณะวิทยาศาสตร์และเทคโนโลยี มหาวิทยาลัยราชภัฏรำไพพรรณี
+    </div>
+  </header>
+
+  <main class="main-container">
+    <!-- Card 1: WebAR Application -->
+    <div class="card">
+      <div>
+        <div class="card-title">
+          <i class="fa-solid fa-mobile-screen" style="color: var(--accent);"></i>
+          ระบบ WebAR 3D Interactive Lab
+        </div>
+        <p class="card-desc">
+          เปิดกล้องสมาร์ตโฟนส่องรหัสมาร์กเกอร์ ArUco (DICT_6X6_250) เพื่อดูโมเดลจำลอง 3 มิติเชิงโต้ตอบ 60 FPS หมุนสำรวจ $360^\circ$ พร้อมระบบ Telemetry และคำนวณสด
+        </p>
+        <ul class="features-list">
+          <li><i class="fa-solid fa-check"></i> รองรับ 8 ปฏิบัติการทดลองครบตามเล่มตำรา</li>
+          <li><i class="fa-solid fa-check"></i> ติดตามวัตถุ 6-DoF Optical Recognition</li>
+          <li><i class="fa-solid fa-check"></i> ไม่ต้องติดตั้งแอปพลิเคชัน รันผ่านเว็บ 100%</li>
+        </ul>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+        <a href="ar_3d_aruco_book/index.html" class="btn">
+          <i class="fa-solid fa-camera"></i> เปิดระบบ WebAR 3D บนมือถือ
+        </a>
+        <a href="ar_3d_aruco_book/ar_markers_sheet_A4.pdf" target="_blank" class="btn btn-secondary">
+          <i class="fa-solid fa-file-pdf"></i> ดาวน์โหลดแผ่นการ์ดมาร์กเกอร์ (A4 Sheet)
+        </a>
+      </div>
+    </div>
+
+    <!-- Card 2: Textbook PDF -->
+    <div class="card">
+      <div>
+        <div class="card-title">
+          <i class="fa-solid fa-book-open" style="color: var(--primary);"></i>
+          ตำราวิชาการฉบับสมบูรณ์
+        </div>
+        <p class="card-desc">
+          ตำราวิชาการระดับอุดมศึกษา มาตรฐาน B5 (171 หน้า) ครอบคลุมจุลินทรีย์ดิน, PGPR, การควบคุมชีววิธี, การสกัด Metagenomic DNA, และ Edge AIoT Smart Farm
+        </p>
+        <ul class="features-list">
+          <li><i class="fa-solid fa-check"></i> เลขมาตรฐานสากล: ISBN 978-616-94520-2-7</li>
+          <li><i class="fa-solid fa-check"></i> ฝังรหัส ArUco Marker ในคู่มือปฏิบัติการ (บทที่ 11)</li>
+          <li><i class="fa-solid fa-check"></i> ดัชนีคำค้นสองภาษา (MakeIndex) & เอกสารอ้างอิง APA 7th</li>
+        </ul>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+        <a href="จุลชีววิทยาการเกษตรและเทคโนโลยี_AIoT_ชีวะทัศนา.pdf" target="_blank" class="btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); box-shadow: 0 4px 15px rgba(2, 132, 199, 0.35);">
+          <i class="fa-solid fa-download"></i> ดาวน์โหลดตำราฉบับสมบูรณ์ (PDF 171 หน้า)
+        </a>
+        <a href="https://github.com/TsanaPhysics/agrimicroxAIoT" target="_blank" class="btn btn-secondary">
+          <i class="fa-brands fa-github"></i> ดูซอร์สโค้ด XeLaTeX บน GitHub
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    สงวนลิขสิทธิ์ &copy; 2569 คณะวิทยาศาสตร์และเทคโนโลยี มหาวิทยาลัยราชภัฏรำไพพรรณี<br>
+    เผยแพร่เพื่อการศึกษาและวิจัยทางวิชาการ
+  </footer>
+
+</body>
+</html>

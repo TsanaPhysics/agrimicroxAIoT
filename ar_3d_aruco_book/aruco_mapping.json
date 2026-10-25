@@ -1,0 +1,96 @@
+{
+  "book_title": "Agricultural Microbiology and AIoT Technology",
+  "book_isbn": "978-616-94520-2-7",
+  "dictionary": "DICT_6X6_250",
+  "total_labs": 8,
+  "targets": [
+    {
+      "lab_id": 1,
+      "aruco_id": 0,
+      "code": "lab01_winogradsky",
+      "title": "ปฏิบัติการที่ 1: การสร้างและศึกษานิเวศวิทยา Winogradsky Column",
+      "title_en": "Lab 1: Winogradsky Column & Soil Microbial Ecology",
+      "short": "1. คอลัมน์วิโนกราดสกี",
+      "biomolecule": "Photosynthetic Reaction Center & Bacteriochlorophyll",
+      "pdb_id": "1PCR",
+      "color": "#10b981"
+    },
+    {
+      "lab_id": 2,
+      "aruco_id": 1,
+      "code": "lab02_rhizobium",
+      "title": "ปฏิบัติการที่ 2: การแยกและทดสอบประสิทธิภาพ Rhizobium จากปมรากถั่ว",
+      "title_en": "Lab 2: Rhizobium Isolation & Leghemoglobin Activity",
+      "short": "2. ปมรากถั่วและเลกเฮโมโกลบิน",
+      "biomolecule": "Leghemoglobin (Oxygen Buffer Protein)",
+      "pdb_id": "1GDJ",
+      "color": "#ec4899"
+    },
+    {
+      "lab_id": 3,
+      "aruco_id": 2,
+      "code": "lab03_phosphate",
+      "title": "ปฏิบัติการที่ 3: การคัดเลือกจุลินทรีย์ละลายฟอสเฟต (PSI)",
+      "title_en": "Lab 3: Phosphate Solubilizing Microorganisms & PSI",
+      "short": "3. จุลินทรีย์ละลายฟอสเฟต",
+      "biomolecule": "Acid Phosphatase / Phytase",
+      "pdb_id": "1DKL",
+      "color": "#f59e0b"
+    },
+    {
+      "lab_id": 4,
+      "aruco_id": 3,
+      "code": "lab04_trichoderma",
+      "title": "ปฏิบัติการที่ 4: การทดสอบกิจกรรมปฏิปักษ์ของ Trichoderma (PIRG)",
+      "title_en": "Lab 4: Trichoderma Antagonistic Assay & PIRG",
+      "short": "4. ราปฏิปักษ์ไตรโคเดอร์มา",
+      "biomolecule": "Endochitinase Chi18a & Bt Toxin",
+      "pdb_id": "1CTN",
+      "color": "#06b6d4"
+    },
+    {
+      "lab_id": 5,
+      "aruco_id": 4,
+      "code": "lab05_mycorrhiza",
+      "title": "ปฏิบัติการที่ 5: การย้อมสีและตรวจหาเชื้อราไมคอร์ไรซาในรากพืช",
+      "title_en": "Lab 5: Arbuscular Mycorrhizal Fungi (AMF) Root Colonization",
+      "short": "5. ราไมคอร์ไรซาในรากพืช",
+      "biomolecule": "Plant Phosphate Transporter (Pht1)",
+      "pdb_id": "7EI8",
+      "color": "#8b5cf6"
+    },
+    {
+      "lab_id": 6,
+      "aruco_id": 5,
+      "code": "lab06_biofertilizer",
+      "title": "ปฏิบัติการที่ 6: การวิเคราะห์คุณภาพปุ๋ยชีวภาพและการตรวจหาเชื้อปนเปื้อน",
+      "title_en": "Lab 6: Biofertilizer Quality Control & Serial Dilution",
+      "short": "6. ตรวจสอบคุณภาพปุ๋ยชีวภาพ",
+      "biomolecule": "Bacterial Cell Wall Peptidoglycan Complex",
+      "pdb_id": "1VQQ",
+      "color": "#3b82f6"
+    },
+    {
+      "lab_id": 7,
+      "aruco_id": 6,
+      "code": "lab07_soil_dna",
+      "title": "ปฏิบัติการที่ 7: การสกัด Soil DNA และการตรวจสอบคุณภาพ",
+      "title_en": "Lab 7: Soil Metagenomic DNA Extraction & Purity",
+      "short": "7. การสกัด Soil DNA",
+      "biomolecule": "B-DNA Double Helix",
+      "pdb_id": "1BNA",
+      "color": "#eab308"
+    },
+    {
+      "lab_id": 8,
+      "aruco_id": 7,
+      "code": "lab08_pcr_diagnosis",
+      "title": "ปฏิบัติการที่ 8: การตรวจวินิจฉัยโรคพืชด้วย PCR และการประเมินภาพด้วย OpenCV",
+      "title_en": "Lab 8: Plant Pathogen PCR Diagnosis & Vision AI",
+      "short": "8. PCR วินิจฉัยโรคพืช & AI",
+      "biomolecule": "Taq DNA Polymerase Polymerization Complex",
+      "pdb_id": "1TAU",
+      "color": "#ef4444"
+    }
+  ]
+}

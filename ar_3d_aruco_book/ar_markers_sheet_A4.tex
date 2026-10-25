@@ -1,0 +1,135 @@
+\documentclass[a4paper,10pt]{article}
+
+\usepackage[top=12mm,bottom=12mm,left=12mm,right=12mm]{geometry}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setdefaultlanguage{thai}
+\setotherlanguage{english}
+
+\setmainfont{Sarabun}[
+    UprightFont = * Regular,
+    BoldFont = * Bold,
+    ItalicFont = * Italic,
+    BoldItalicFont = * Bold Italic,
+    Scale = 1.0
+]
+\newfontfamily\thaifont{Sarabun}[Script=Thai,
+    UprightFont = * Regular,
+    BoldFont = * Bold,
+    ItalicFont = * Italic,
+    BoldItalicFont = * Bold Italic,
+    Scale = 1.0
+]
+\newfontfamily\thaifonttt{Sarabun}[Script=Thai,
+    UprightFont = * Regular,
+    BoldFont = * Bold,
+    Scale = 0.95
+]
+\setmonofont{Sarabun}[Scale=0.95]
+
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{hyperref}
+
+\definecolor{rbrugreen}{RGB}{16, 80, 52}
+\definecolor{darknavy}{RGB}{15, 23, 42}
+\definecolor{techblue}{RGB}{14, 116, 144}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=techblue,
+    urlcolor=techblue,
+    pdftitle={แผ่นการ์ดมาร์กเกอร์ 3D WebAR ArUco คู่มือปฏิบัติการจุลชีววิทยาการเกษตร},
+    pdfauthor={ผศ.ดร.ชีวะ ทัศนา และ ผศ.ดร.จิรภัทร จันทมาลี}
+}
+
+\pagestyle{empty}
+
+\newcommand{\arcard}[4]{%
+    \begin{tcolorbox}[colback=white, colframe=gray!40, boxrule=0.6pt, arc=3pt, left=3pt, right=3pt, top=3pt, bottom=3pt, halign=center, width=\linewidth]
+        \includegraphics[height=75mm,keepaspectratio]{#1}\\[1.5mm]
+        {\footnotesize\bfseries\color{techblue} #2}\\[0.5mm]
+        {\scriptsize\color{darknavy} #3 | #4}
+    \end{tcolorbox}%
+}
+
+\begin{document}
+
+% =============================================================
+% แผ่นที่ 1: การ์ดปฏิบัติการที่ 1 - 4
+% =============================================================
+\begin{center}
+    {\fontsize{14pt}{17pt}\bfseries\color{rbrugreen} แผ่นการ์ดมาร์กเกอร์ 3D WebAR ArUco Interactive Book}\\[1mm]
+    {\fontsize{10pt}{13pt}\bfseries\color{techblue} ตำราจุลชีววิทยาการเกษตรและเทคโนโลยี AIoT (คู่มือปฏิบัติการ บทที่ 11)}\\[0.5mm]
+    {\fontsize{8pt}{10pt}\color{darknavy} คณะวิทยาศาสตร์และเทคโนโลยี มหาวิทยาลัยราชภัฏรำไพพรรณี | ArUco DICT\_6X6\_250 (แผ่นที่ 1/2)}
+\end{center}
+
+\vspace{-2mm}
+\begin{tcolorbox}[colback=techblue!6, colframe=techblue, boxrule=0.6pt, arc=3pt, left=6pt, right=6pt, top=3pt, bottom=3pt]
+\footnotesize
+\textbf{\color{techblue}คำแนะนำการใช้งาน:}\\
+1. ตัดการ์ดตามกรอบ หรือส่องโดยตรงจากแผ่นพิมพ์หรือหน้าจอดิจิทัล\\
+2. เปิดเบราว์เซอร์สมาร์ตโฟนเข้าสู่ WebAR: \url{http://localhost/ar_3d_aruco_book/}\\
+3. ส่องกล้องให้เห็นรหัส ArUco กึ่งกลางหน้าจอ แบบจำลอง 3 มิติเชิงปฏิสัมพันธ์จะปรากฏขึ้นทันที 60 FPS
+\end{tcolorbox}
+
+\vspace{1mm}
+
+\noindent
+\begin{minipage}[t]{0.485\textwidth}
+    \arcard{aruco_cards/card_lab1_aruco_0.png}{ปฏิบัติการที่ 1: Winogradsky Eco-Column (ID: 0)}{บทที่ 11}{โมเดล 3D คอลัมน์ 4 ชั้นนิเวศจุลินทรีย์}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.485\textwidth}
+    \arcard{aruco_cards/card_lab2_aruco_1.png}{ปฏิบัติการที่ 2: Rhizobium \& Leghemoglobin (ID: 1)}{บทที่ 11}{ปมรากถั่วผ่าซีก และโครงสร้างโปรตีน 1GDJ}
+\end{minipage}
+
+\vspace{2mm}
+
+\noindent
+\begin{minipage}[t]{0.485\textwidth}
+    \arcard{aruco_cards/card_lab3_aruco_2.png}{ปฏิบัติการที่ 3: Phosphate Solubilizer (PSI) (ID: 2)}{บทที่ 11}{วุ้น Pikovskaya วงใส ละลายหินฟอสเฟต}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.485\textwidth}
+    \arcard{aruco_cards/card_lab4_aruco_3.png}{ปฏิบัติการที่ 4: Trichoderma Confrontation (ID: 3)}{บทที่ 11}{Dual Culture PIRG และเอนไซม์ Chitinase}
+\end{minipage}
+
+\clearpage
+
+% =============================================================
+% แผ่นที่ 2: การ์ดปฏิบัติการที่ 5 - 8
+% =============================================================
+\begin{center}
+    {\fontsize{14pt}{17pt}\bfseries\color{rbrugreen} แผ่นการ์ดมาร์กเกอร์ 3D WebAR ArUco Interactive Book}\\[1mm]
+    {\fontsize{10pt}{13pt}\bfseries\color{techblue} ตำราจุลชีววิทยาการเกษตรและเทคโนโลยี AIoT (คู่มือปฏิบัติการ บทที่ 11)}\\[0.5mm]
+    {\fontsize{8pt}{10pt}\color{darknavy} คณะวิทยาศาสตร์และเทคโนโลยี มหาวิทยาลัยราชภัฏรำไพพรรณี | ArUco DICT\_6X6\_250 (แผ่นที่ 2/2)}
+\end{center}
+
+\vspace{-2mm}
+\begin{tcolorbox}[colback=rbrugreen!6, colframe=rbrugreen, boxrule=0.6pt, arc=3pt, left=6pt, right=6pt, top=3pt, bottom=3pt]
+\footnotesize
+\textbf{\color{rbrugreen}ระบบติดตามตำแหน่งเชิงแสง 6 มิติ (6-DoF Optical Tracking):}\\
+รหัส ArUco แต่ละแผ่นเข้ารหัสเมทริกซ์ 6$\times$6 ป้องกันการหมุนหลงทิศแบบ 360 องศา คำนวณเวกเตอร์ตำแหน่ง $\vec{t}$ และควอเทอร์เนียน $\mathbf{q}$ รองรับการหมุนรอบวัตถุเสมือนจริง 60 FPS บนเว็บเบราว์เซอร์ทุกแพลตฟอร์ม
+\end{tcolorbox}
+
+\vspace{1mm}
+
+\noindent
+\begin{minipage}[t]{0.485\textwidth}
+    \arcard{aruco_cards/card_lab5_aruco_4.png}{ปฏิบัติการที่ 5: AMF Root Colonization (ID: 4)}{บทที่ 11}{รากพืชย้อมสี Trypan Blue และกริดนับสปอร์}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.485\textwidth}
+    \arcard{aruco_cards/card_lab6_aruco_5.png}{ปฏิบัติการที่ 6: Biofertilizer QC \& Coliform (ID: 5)}{บทที่ 11}{หลอดเจือจาง $10^{-1}$ ถึง $10^{-6}$ และ MacConkey}
+\end{minipage}
+
+\vspace{2mm}
+
+\noindent
+\begin{minipage}[t]{0.485\textwidth}
+    \arcard{aruco_cards/card_lab7_aruco_6.png}{ปฏิบัติการที่ 7: Soil Metagenomic DNA (ID: 6)}{บทที่ 11}{สกัดหลอดบีดบีตติ้ง เกลียวคู่ B-DNA 1BNA}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.485\textwidth}
+    \arcard{aruco_cards/card_lab8_aruco_7.png}{ปฏิบัติการที่ 8: PCR Diagnosis \& Vision AI (ID: 7)}{บทที่ 11}{เครื่อง PCR เทอร์โมไซเคิล เจล UV และ AI}
+\end{minipage}
+
+\end{document}
